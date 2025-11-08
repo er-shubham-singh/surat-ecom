@@ -5,12 +5,21 @@ import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
   return (
-    <div className="flex min-h-screen bg-[#071124] text-white">
-      <Sidebar />
-
-      <div className="flex flex-col flex-1">
+    <div className="h-screen flex flex-col bg-[#071124] text-white overflow-hidden">
+      {/* Fixed Topbar */}
+      <div className="flex-shrink-0 z-10">
         <Topbar />
-        <main className="flex-1 p-10 overflow-y-auto">
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Fixed Sidebar */}
+        <div className="flex-shrink-0 h-full">
+          <Sidebar />
+        </div>
+
+        {/* Scrollable Page Content */}
+        <main className="flex-1 overflow-y-auto p-10">
           <Outlet />
         </main>
       </div>

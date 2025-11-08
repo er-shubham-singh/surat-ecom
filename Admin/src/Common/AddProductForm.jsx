@@ -80,18 +80,34 @@ const AddProductForm = () => {
   return (
     <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
       {/* File input (default browser style like screenshot) */}
-      <div className="mb-6">
-        <input
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          className="inline-block"
-        />
-        <span className="ml-4 text-gray-300">
-          {selectedFiles.length > 0
-            ? `${selectedFiles.length} file(s) chosen`
-            : "No file chosen"}
-        </span>
+      <div className="mb-8">
+        <label className="inline-flex items-center px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-md text-sm font-medium cursor-pointer hover:from-purple-600 hover:to-purple-700 transition">
+          <span>Choose Files</span>
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
+
+        {selectedFiles.length > 0 ? (
+          <div className="mt-3 text-gray-300 text-sm space-y-1">
+            <p className="font-medium">
+              {selectedFiles.length} file{selectedFiles.length > 1 ? "s" : ""}{" "}
+              selected:
+            </p>
+            <ul className="list-disc ml-5 space-y-0.5">
+              {selectedFiles.map((file, index) => (
+                <li key={index} className="truncate max-w-sm text-gray-400">
+                  {file.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <span className="ml-3 text-gray-400 text-sm">No files chosen</span>
+        )}
       </div>
 
       {/* Brand & Title */}
