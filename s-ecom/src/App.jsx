@@ -4,6 +4,9 @@ import Header from "./Common/Header";
 import Home from "./Home/Home";
 import About from "./Pages/About";
 import Footer from "./Common/Footer";
+import ProductPage from "./Product/Product";
+import ProductDetailsPage from "./Product/ProductDetailsPage";
+import CartPage from "./Cart/CartPage";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -14,6 +17,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/product" element={<ProductPage />} />
+        <Route path="/productdetailpage" element={ <ProductDetailsPage />} />
+        <Route path="cart" element={<CartPage />} />
      </Routes>
      <Footer />
     </>
