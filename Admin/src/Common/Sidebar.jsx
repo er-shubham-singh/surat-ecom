@@ -15,7 +15,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-[230px] h-full bg-[#0b1226] border-r border-gray-700 flex flex-col">
+    <aside className="w-[230px] h-full bg-black border-r border-gray-700 flex flex-col">
       <nav className="flex-1 py-4">
         {navItems.map((item) => (
           <NavLink

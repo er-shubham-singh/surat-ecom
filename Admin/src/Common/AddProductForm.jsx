@@ -185,7 +185,7 @@ const AddProductForm = () => {
         >
           <option value="">Top Level Category</option>
           {Object.keys(categoryData).map((key) => (
-            <option key={key} value={key}>
+            <option key={key} value={key} className="text-black">
               {key}
             </option>
           ))}
@@ -200,7 +200,7 @@ const AddProductForm = () => {
         >
           <option value="">Second Level Category</option>
           {secondLevelOptions.map((s) => (
-            <option key={s} value={s}>
+            <option key={s} value={s} className="text-black">
               {s}
             </option>
           ))}
@@ -215,7 +215,7 @@ const AddProductForm = () => {
         >
           <option value="">Third Level Category</option>
           {thirdLevelOptions.map((t) => (
-            <option key={t} value={t.toLowerCase()}>
+            <option key={t} value={t.toLowerCase()} className="text-black">
               {t}
             </option>
           ))}
