@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HiOutlineArrowNarrowRight } from "react-icons/hi";
 import HomeCarouselData from "./HomeCarouselData";
 
@@ -59,7 +59,7 @@ const spottedItems = [
 
 const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
+ const navigate = useNavigate()
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) =>
@@ -164,6 +164,15 @@ const Home = () => {
           ))}
         </div>
       </div>
+
+
+<div className="flex gap-5 mt-5 justify-center">
+  
+<button className="text-black bg-red-500 p-5 rounded cursor-pointer" onClick={()=>navigate('/product')}>Product</button>
+<button className="bg-red-500 p-5 rounded cursor-pointer" onClick={()=>navigate('/productdetailpage')}>Product details</button>
+<button className="bg-red-500 p-5 rounded cursor-pointer" onClick={()=> navigate('/cart')}>Cart</button>
+
+</div>
 
       {/* New Arrivals Section with Enhanced Layout */}
       <section className="py-20 md:py-28 bg-[#FFFDF6] relative overflow-hidden">
