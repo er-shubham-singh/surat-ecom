@@ -81,7 +81,7 @@ const AddProductForm = () => {
     <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
       {/* File input (default browser style like screenshot) */}
       <div className="mb-8">
-        <label className="inline-flex items-center px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-md text-sm font-medium cursor-pointer hover:from-purple-600 hover:to-purple-700 transition">
+        <label className="inline-flex items-center px-6 py-2 bg-linear-to-r from-purple-500 to-purple-600 text-white rounded-md text-sm font-medium cursor-pointer hover:from-purple-600 hover:to-purple-700 transition">
           <span>Choose Files</span>
           <input
             type="file"
