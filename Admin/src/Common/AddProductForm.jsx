@@ -241,6 +241,7 @@ const AddProductForm = () => {
           value={formData.freeSize}
           onChange={handleInputChange}
           placeholder="Quantity (Free Size) *"
+          type="number"
           className="w-1/2 bg-transparent border border-[#24303e] rounded px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none"
         />
       </div>
