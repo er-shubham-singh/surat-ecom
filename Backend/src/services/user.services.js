@@ -1,75 +1,110 @@
+// services/user.services.js
 import bcrypt from 'bcrypt';
-import User from '../models/user.model.js';
+import User from '../modal/user.modal.js';
 import * as jwtProvider from '../config/jwtProvider.js';
 
-//  Register a new user
+const SALT_ROUNDS = 10;
+
+// Register a new user
 const registerUser = async (userData) => {
   try {
     const { firstName, lastName, email, password, role } = userData;
-    const isExist = await User.findOne({ email });
-    if (isExist) {
-      throw new Error(`User already exists with email: ${email}`);
+
+    if (!email || !password) {
+      throw new Error('Email and password required');
     }
-    const hashedPassword = await bcrypt.hash(password, 8);
+
+    const normalizedEmail = email.toLowerCase();
+
+    const isExist = await User.findOne({ email: normalizedEmail });
+    if (isExist) {
+      throw new Error(`User already exists with email: ${normalizedEmail}`);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
     const user = await User.create({
       firstName,
       lastName,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       role,
     });
 
-    return user;
+    const token = jwtProvider.generateToken(user._id);
+    const userToReturn = user.toObject();
+    delete userToReturn.password;
+
+    return { user: userToReturn, token };
   } catch (err) {
     throw new Error(err.message);
   }
 };
 
-//  Get user by ID
+// Login
+const login = async ({ email, password }) => {
+  try {
+    if (!email || !password) {
+      throw new Error('Email and password are required');
+    }
+
+    const normalizedEmail = email.toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      throw new Error('Invalid email or password'); 
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error('Invalid email or password');
+    }
+
+    const token = jwtProvider.generateToken(user._id);
+    const userToReturn = user.toObject();
+    delete userToReturn.password;
+
+    return { user: userToReturn, token };
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// Get user by ID
 const getUserById = async (userId) => {
   try {
     const user = await User.findById(userId).select('-password');
-    if (!user) {
-      throw new Error(`User not found with ID: ${userId}`);
-    }
+    if (!user) throw new Error(`User not found with ID: ${userId}`);
     return user;
   } catch (err) {
     throw new Error(err.message);
   }
 };
 
-//  Get user by email
+// Get user by email (returns full user; use carefully)
 const getUserByEmail = async (email) => {
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw new Error(`User not found with email: ${email}`);
-    }
+    const normalizedEmail = String(email).toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) throw new Error(`User not found with email: ${normalizedEmail}`);
     return user;
   } catch (err) {
     throw new Error(err.message);
   }
 };
 
-//  Get user by token
+// Get user by token
 const getUserByToken = async (token) => {
   try {
     const userId = jwtProvider.getUserIdFromToken(token);
-    const user = await User.findById(userId)
-      .populate('addresses')
-      .select('-password');
-
-    if (!user) {
-      throw new Error(`User not found with ID: ${userId}`);
-    }
-
+    const user = await User.findById(userId).populate('addresses').select('-password');
+    if (!user) throw new Error(`User not found with ID: ${userId}`);
     return user;
   } catch (err) {
     throw new Error(err.message);
   }
 };
 
-//  Get all users
+// Get all users
 const getAllUsers = async () => {
   try {
     const users = await User.find().select('-password');
@@ -79,4 +114,11 @@ const getAllUsers = async () => {
   }
 };
 
-export { registerUser, getUserById, getUserByEmail, getUserByToken, getAllUsers };
+export {
+  registerUser,
+  login,
+  getUserById,
+  getUserByEmail,
+  getUserByToken,
+  getAllUsers,
+};
