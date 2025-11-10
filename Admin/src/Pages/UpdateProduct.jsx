@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { X } from "lucide-react"; // ✅ for the remove icon
 
 const UpdateProduct = () => {
   const navigate = useNavigate();
@@ -260,7 +259,7 @@ const UpdateProduct = () => {
 
           <button
             type="submit"
-            className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white px-6 py-3 rounded-lg font-semibold transition"
+            className="bg-linear-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white px-6 py-3 rounded-lg font-semibold transition"
           >
             UPDATE PRODUCT
           </button>
