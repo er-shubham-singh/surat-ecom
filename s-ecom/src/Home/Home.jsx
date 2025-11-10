@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HiOutlineArrowNarrowRight } from "react-icons/hi";
 import HomeCarouselData from "./HomeCarouselData";
 
@@ -59,7 +59,7 @@ const spottedItems = [
 
 const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
+ const navigate = useNavigate()
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) =>
@@ -197,6 +197,15 @@ const Home = () => {
           ))}
         </div>
       </div>
+
+
+<div className="flex gap-5 mt-5 justify-center">
+  
+<button className="text-black bg-red-500 p-5 rounded cursor-pointer" onClick={()=>navigate('/product')}>Product</button>
+<button className="bg-red-500 p-5 rounded cursor-pointer" onClick={()=>navigate('/productdetailpage')}>Product details</button>
+<button className="bg-red-500 p-5 rounded cursor-pointer" onClick={()=> navigate('/cart')}>Cart</button>
+
+</div>
 
       {/* New Arrivals Section with Enhanced Layout */}
       <section className="py-20 md:py-28 bg-[#FFFDF6] relative overflow-hidden">
@@ -437,6 +446,7 @@ const Home = () => {
       </section>
 
       {/* Spotted Section with Grid Enhancement */}
+{/* Spotted Section with Grid Enhancement */}
       <section className="py-20 md:py-28 bg-[#FFFDF6] relative overflow-hidden">
         <div className="absolute top-20 left-20 w-96 h-96 bg-[#DFF200]/5 rounded-full blur-3xl" />
 
@@ -492,6 +502,224 @@ const Home = () => {
                 </div>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Section */}
+      <section className="py-20 md:py-28 relative overflow-hidden" style={{ backgroundColor: "#F8F6F0" }}>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#CBE600]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#DFF200]/5 rounded-full blur-3xl" />
+        
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <span className="inline-block px-4 py-1.5 rounded-full text-xs tracking-widest font-medium mb-4" style={{ backgroundColor: "#CBE600", color: "white" }}>
+              FASHION INSIGHTS
+            </span>
+            <h2 className="text-4xl md:text-5xl tracking-wider font-serif font-light mb-4" style={{ color: "#8A6F4F" }}>
+              FROM OUR BLOG
+            </h2>
+            <p className="text-base text-gray-600 max-w-2xl mx-auto font-light">
+              Stay inspired with the latest trends, styling tips, and fashion stories
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 auto-rows-fr">
+            {/* Featured Blog Post */}
+            <article className="group lg:col-span-2 lg:row-span-2">
+              <Link to="/blog/winter-styling-guide" className="block h-full">
+                <div className="bg-white rounded-xl overflow-hidden shadow-xl border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
+                  <div className="relative w-full h-[400px] lg:h-full lg:min-h-[520px] overflow-hidden flex-grow">
+                    <img
+                      src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80"
+                      alt="Winter styling guide"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    
+                    <div className="absolute top-6 left-6">
+                      <span className="inline-block px-4 py-1.5 rounded-full text-xs font-medium bg-[#DFF200] text-[#222426]">
+                        FEATURED
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
+                      <div className="flex items-center gap-4 mb-4 text-white/80 text-sm">
+                        <time dateTime="2025-01-15">January 15, 2025</time>
+                        <span>•</span>
+                        <span>8 min read</span>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-serif font-semibold text-white mb-3 group-hover:text-[#DFF200] transition-colors duration-300">
+                        The Ultimate Winter Styling Guide for 2025
+                      </h3>
+                      <p className="text-white/90 text-base leading-relaxed mb-4">
+                        Discover how to layer like a pro and stay stylish throughout the coldest months with our comprehensive guide to winter fashion.
+                      </p>
+                      <div className="inline-flex items-center gap-2 text-[#DFF200] font-semibold group-hover:gap-3 transition-all duration-300">
+                        Read More
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </article>
+
+            {/* Blog Post 2 */}
+            <article className="group flex">
+              <Link to="/blog/sustainable-fashion" className="block w-full">
+                <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
+                  <div className="relative w-full h-[240px] overflow-hidden flex-shrink-0">
+                    <img
+                      src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80"
+                      alt="Sustainable fashion"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  </div>
+                  
+                  <div className="p-6 md:p-7 flex flex-col flex-grow">
+                    <div className="flex items-center gap-3 mb-3 text-gray-500 text-xs">
+                      <time dateTime="2025-01-10">January 10, 2025</time>
+                      <span>•</span>
+                      <span>5 min read</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-[#222426] mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">
+                      Sustainable Fashion: Making Conscious Choices
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-grow">
+                      Learn how to build a sustainable wardrobe without compromising on style or quality.
+                    </p>
+                    <div className="inline-flex items-center gap-2 text-[#8A6F4F] font-medium text-sm group-hover:gap-3 transition-all duration-300 mt-auto">
+                      Read Article
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </article>
+
+            {/* Blog Post 3 */}
+            <article className="group flex">
+              <Link to="/blog/color-trends-2025" className="block w-full">
+                <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
+                  <div className="relative w-full h-[240px] overflow-hidden flex-shrink-0">
+                    <img
+                      src="https://images.unsplash.com/photo-1558769132-cb1aea41f9c6?auto=format&fit=crop&w=800&q=80"
+                      alt="Color trends 2025"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  </div>
+                  
+                  <div className="p-6 md:p-7 flex flex-col flex-grow">
+                    <div className="flex items-center gap-3 mb-3 text-gray-500 text-xs">
+                      <time dateTime="2025-01-05">January 5, 2025</time>
+                      <span>•</span>
+                      <span>6 min read</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-[#222426] mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">
+                      Top Color Trends Dominating 2025 Fashion
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-grow">
+                      From bold neons to earthy neutrals, explore the colors that are defining this year's fashion landscape.
+                    </p>
+                    <div className="inline-flex items-center gap-2 text-[#8A6F4F] font-medium text-sm group-hover:gap-3 transition-all duration-300 mt-auto">
+                      Read Article
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </article>
+
+            {/* Blog Post 4 */}
+            <article className="group flex">
+              <Link to="/blog/office-to-evening" className="block w-full">
+                <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
+                  <div className="relative w-full h-[240px] overflow-hidden flex-shrink-0">
+                    <img
+                      src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&q=80"
+                      alt="Office to evening style"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  </div>
+                  
+                  <div className="p-6 md:p-7 flex flex-col flex-grow">
+                    <div className="flex items-center gap-3 mb-3 text-gray-500 text-xs">
+                      <time dateTime="2024-12-28">December 28, 2024</time>
+                      <span>•</span>
+                      <span>4 min read</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-[#222426] mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">
+                      Office to Evening: Transition Your Look Seamlessly
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-grow">
+                      Master the art of versatile dressing with these simple styling tricks for day-to-night transformations.
+                    </p>
+                    <div className="inline-flex items-center gap-2 text-[#8A6F4F] font-medium text-sm group-hover:gap-3 transition-all duration-300 mt-auto">
+                      Read Article
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </article>
+
+            {/* Blog Post 5 */}
+            <article className="group flex">
+              <Link to="/blog/accessory-essentials" className="block w-full">
+                <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
+                  <div className="relative w-full h-[240px] overflow-hidden flex-shrink-0">
+                    <img
+                      src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=800&q=80"
+                      alt="Accessory essentials"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  </div>
+                  
+                  <div className="p-6 md:p-7 flex flex-col flex-grow">
+                    <div className="flex items-center gap-3 mb-3 text-gray-500 text-xs">
+                      <time dateTime="2024-12-20">December 20, 2024</time>
+                      <span>•</span>
+                      <span>7 min read</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-[#222426] mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">
+                      10 Accessory Essentials Every Wardrobe Needs
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-grow">
+                      Elevate any outfit with these timeless accessories that never go out of style.
+                    </p>
+                    <div className="inline-flex items-center gap-2 text-[#8A6F4F] font-medium text-sm group-hover:gap-3 transition-all duration-300 mt-auto">
+                      Read Article
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </article>
+          </div>
+
+          <div className="mt-16 flex justify-center">
+            <Link
+              to="/blog"
+              className="group inline-flex items-center gap-3 px-10 py-4 border-2 border-[#8A6F4F] text-base font-semibold text-[#8A6F4F] uppercase tracking-wide transition-all duration-300 hover:border-[#CBE600] hover:bg-[#CBE600] hover:text-white rounded-full shadow-lg hover:shadow-xl"
+            >
+              <span>View All Articles</span>
+              <HiOutlineArrowNarrowRight className="text-xl transition-transform duration-300 group-hover:translate-x-2" />
+            </Link>
           </div>
         </div>
       </section>

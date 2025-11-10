@@ -406,14 +406,14 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <div className="flex-shrink-0">
+            <div className="">
               <Link to="/" className="flex items-center space-x-3 group">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-[#CBE600] blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                  <div className=" bg-[#CBE600] blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
                   <img
-                    src="https://placehold.co/120x48/111111/DFF200?text=VENUS"
+                    src="logo/logo.jpeg"
                     alt="Venus Garments Logo"
-                    className="h-12 md:h-14 object-contain relative z-10 transition-transform duration-300 group-hover:scale-105"
+                    className="h-15  rounded-full object-contain  transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
               </Link>
