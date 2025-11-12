@@ -1,10 +1,19 @@
-import express from 'express'
-import * as userController from '../controller/user.contoller.js'
+// routes/auth.routes.js
+import express from "express";
+import * as authController from "../controller/user.contoller.js";
 
-const Router = express.Router()
+const router = express.Router();
 
-Router.post("/register", userController.register)
-Router.post("/login",userController.login)
+// Auth routes
+router.post("/register", authController.register);
+router.post("/login", authController.login);
 
+// OTP verification routes
+router.post("/request-verify-otp", authController.requestVerifyOtp);
+router.post("/confirm-verify-otp", authController.confirmVerifyOtp);
 
-export default Router
+// Password reset via OTP
+router.post("/request-reset-otp", authController.requestResetOtp);
+router.post("/reset-password", authController.resetPassword);
+
+export default router;
