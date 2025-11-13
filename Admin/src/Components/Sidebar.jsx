@@ -12,6 +12,7 @@ const Sidebar = () => {
     { label: "Products", icon: <Package size={20} />, path: "/products" },
     { label: "Customers", icon: <Users size={20} />, path: "/customers" },
     { label: "Add Product", icon: <Plus size={20} />, path: "/add-product" },
+    { label: "Orders", icon: <Package size={20}/>, path: "/orders"}
   ];
 
   return (

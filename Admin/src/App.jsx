@@ -6,6 +6,7 @@ import Products from "./Pages/Products";
 import Customers from "./Pages/Customers";
 import AdminAddProduct from "./Pages/AdminAddProduct";
 import UpdateProduct from "./Pages/UpdateProduct";
+import Orders from "./Pages/Orders"
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
         <Route path="/customers" element={<Customers />} />
         <Route path="/add-product" element={<AdminAddProduct />} />
         <Route path="/admin/update-product" element={<UpdateProduct />} />
+        <Route path="/orders" element={<Orders />}/>
       </Route>
     </Routes>
   );
