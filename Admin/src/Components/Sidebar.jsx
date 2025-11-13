@@ -7,7 +7,7 @@ const Sidebar = () => {
     {
       label: "Dashboard",
       icon: <LayoutDashboard size={20} />,
-      path: "/dashboard",
+      path: "/",
     },
     { label: "Products", icon: <Package size={20} />, path: "/products" },
     { label: "Customers", icon: <Users size={20} />, path: "/customers" },
