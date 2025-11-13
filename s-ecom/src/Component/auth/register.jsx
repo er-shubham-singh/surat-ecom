@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -15,7 +15,8 @@ function Register({ onClose, switchToLogin }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: "",
+    firstName: "",
+    lastName:"",
     email: "",
     password: "",
   });
@@ -25,17 +26,32 @@ function Register({ onClose, switchToLogin }) {
   const [otpSent, setOtpSent] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
 
+  // if external isVerified changed (from reducer), open username/password
+  useEffect(() => {
+    if (isVerified) {
+      setShowOtp(false);
+      setEmailLocked(true);
+    }
+  }, [isVerified]);
+
   // -----------------
   // Send OTP
   // -----------------
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!formData.email) return alert("Please enter your email first.");
-    dispatch(sendVerifyOtp(formData.email)).then(() => {
-      setShowOtp(true);
-      setEmailLocked(true);
-      setOtpSent(true);
-      startResendTimer();
-    });
+    try {
+      const res = await dispatch(sendVerifyOtp(formData.email));
+      if (res?.success) {
+        setShowOtp(true);
+        setEmailLocked(true);
+        setOtpSent(true);
+        startResendTimer();
+      } else {
+        alert(res?.error || "Unable to send OTP");
+      }
+    } catch (err) {
+      alert(err.message || "Something went wrong");
+    }
   };
 
   // -----------------
@@ -54,34 +70,54 @@ function Register({ onClose, switchToLogin }) {
     }, 1000);
   };
 
-  const handleResendOtp = () => {
-    dispatch(sendVerifyOtp(formData.email)).then(() => {
-      startResendTimer();
-    });
+  const handleResendOtp = async () => {
+    try {
+      const res = await dispatch(sendVerifyOtp(formData.email));
+      if (res?.success) startResendTimer();
+      else alert(res?.error || "Could not resend OTP");
+    } catch (err) {
+      alert(err.message || "Something went wrong");
+    }
   };
 
   // -----------------
   // Verify OTP
   // -----------------
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (!otp) return alert("Enter OTP first.");
-    dispatch(confirmVerifyOtp(formData.email, otp));
+    try {
+      const res = await dispatch(confirmVerifyOtp(formData.email, otp));
+      if (res?.success) {
+        // reducer's isVerified will flip; keep local UI in sync via useEffect
+        setOtp("");
+        setShowOtp(false);
+      } else {
+        alert(res?.error || "Invalid OTP");
+      }
+    } catch (err) {
+      alert(err.message || "Something went wrong");
+    }
   };
 
   // -----------------
   // Signup
   // -----------------
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!isVerified) {
       alert("Please verify your email first.");
       return;
     }
-    dispatch(registerUser(formData)).then(() => {
-      setTimeout(() => {
+    try {
+      const res = await dispatch(registerUser(formData));
+      if (res?.success) {
         switchToLogin();
-      }, 1000);
-    });
+      } else {
+        alert(res?.error || "Registration failed");
+      }
+    } catch (err) {
+      alert(err.message || "Something went wrong");
+    }
   };
 
   const handleChange = (e) => {
@@ -203,14 +239,32 @@ function Register({ onClose, switchToLogin }) {
                 htmlFor="username"
                 className="text-gray-700 font-medium block mb-1 text-left"
               >
-                Username
+                FirstName
               </label>
               <input
-                id="username"
+                id="firstName"
                 type="text"
-                placeholder="Enter username"
-                name="username"
-                value={formData.username}
+                placeholder="Enter Fisrt Name"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="w-full p-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="lastName"
+                className="text-gray-700 font-medium block mb-1 text-left"
+              >
+                Last Name
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                placeholder="Enter Last Name"
+                name="lastName"
+                value={formData.lastName}
                 onChange={handleChange}
                 className="w-full p-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm"
               />

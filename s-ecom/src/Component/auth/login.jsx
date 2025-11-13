@@ -11,20 +11,24 @@ function Login({ onClose, switchToRegister, switchToForgot }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       alert("Please enter both email and password.");
       return;
     }
 
-    dispatch(loginUser({ email, password })).then((res) => {
+    try {
+      const res = await dispatch(loginUser({ email, password }));
       if (res?.success) {
-        setTimeout(() => {
-          onClose(); // Close modal on successful login
-        }, 1000);
+        // close modal or call onClose
+        if (onClose) onClose();
+      } else {
+        alert(res?.error || "Login failed");
       }
-    });
+    } catch (err) {
+      alert(err.message || "Something went wrong");
+    }
   };
 
   return (

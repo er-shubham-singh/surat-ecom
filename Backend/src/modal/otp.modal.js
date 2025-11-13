@@ -4,7 +4,7 @@ const otpSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
+    unique: true, // ✅ keep this — it already creates an index
   },
   otp: {
     type: String,
@@ -13,7 +13,7 @@ const otpSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 600, // automatically delete after 10 minutes (600 sec)
+    expires: 600, // auto-delete after 10 minutes
   },
   attempts: {
     type: Number,
@@ -25,8 +25,8 @@ const otpSchema = new mongoose.Schema({
   },
 });
 
-// Optional: Add an index for faster lookup
-otpSchema.index({ email: 1 });
+// ❌ remove the duplicate index line
+// otpSchema.index({ email: 1 });
 
 const Otp = mongoose.model("Otp", otpSchema);
 

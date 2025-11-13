@@ -1,4 +1,3 @@
-// src/components/ForgotPassword.jsx
 import React, { useState } from "react";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,13 +19,17 @@ function ForgotPassword({ onClose, switchToLogin }) {
     if (!email) return alert("Please enter your email.");
 
     const res = await dispatch(sendResetOtp(email));
-    if (res?.success || res?.message) setShowOtp(true);
+    if (res?.success) {
+      setShowOtp(true);
+    } else {
+      alert(res?.error || "Could not send OTP");
+    }
   };
 
   // 🔹 Step 2: Verify OTP (frontend check for now)
   const handleVerifyOtp = () => {
     if (otp.trim() === "") return alert("Enter the OTP sent to your email.");
-    // You can later add backend OTP verification if needed
+    // For now, mark verified on the front-end — backend verification happens during resetPassword.
     setIsVerified(true);
   };
 
@@ -36,9 +39,11 @@ function ForgotPassword({ onClose, switchToLogin }) {
     if (!newPassword) return alert("Please enter a new password.");
 
     const res = await dispatch(resetPassword(email, otp, newPassword));
-    if (res?.success || res?.message) {
+    if (res?.success) {
       alert("Password reset successful!");
       switchToLogin();
+    } else {
+      alert(res?.error || "Password reset failed");
     }
   };
 

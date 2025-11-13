@@ -156,13 +156,6 @@ const getAllUsers = async () => {
 
 // ---------- OTP related services (fixed + using transporter) ----------
 
-/**
- * verifyEmailService
- * - checks existing registered user
- * - rate limits OTP requests: max OTP_MAX_ATTEMPTS per hour
- * - blocks for OTP_BLOCK_DURATION_MS if exceeded
- * - stores/upserts OTP doc and sends email via transporter
- */
 const verifyEmailService = async (email) => {
   try {
     const normalizedEmail = String(email).toLowerCase();
@@ -213,11 +206,7 @@ const verifyEmailService = async (email) => {
   }
 };
 
-/**
- * confirmOtpService
- * - verify OTP matches and not expired
- * - deletes OTP document on success
- */
+
 const confirmOtpService = async (email, userOtp) => {
   try {
     const normalizedEmail = String(email).toLowerCase();
