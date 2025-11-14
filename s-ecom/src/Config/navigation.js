@@ -49,7 +49,7 @@ const navigation = [
         title: "Jacket",
         subHeadings: [
           {
-            id: "Half_jacket",
+            id: "half_jacket",
             name: "Half Jackets",
             path: "/women/topwear/half-jackets",
           },

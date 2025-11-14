@@ -1,7 +1,7 @@
 // services/product.service.js
-import cloudinary from '../config/cloudinary.js'; // adjust to your cloudinary setup
-import Category from '../models/category.model.js';
-import Product from '../models/product.model.js';
+import cloudinary from '../config/cloudinary.config.js'; // adjust to your cloudinary setup
+import Category from '../modal/category.model.js';
+import Product from '../modal/prodduct.modal.js';
 
 async function uploadFilesToCloudinary(files = [], folder = 'ecommerce/products') {
   if (!files || files.length === 0) return [];

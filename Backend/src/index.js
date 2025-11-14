@@ -10,6 +10,10 @@ const PORT = process.env.PORT
 /*........User........*/
 import UserRoutes from './routes/user.routes.js'
 app.use("/api",UserRoutes)
+
+// product routes
+import ProductRoutes from './routes/product.routes.js'
+app.use("/api",ProductRoutes)
 app.listen(PORT,
     async()=>{
         await connectDb()

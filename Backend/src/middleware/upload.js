@@ -1,4 +1,4 @@
-import muulter from 'multer'
+import multer from 'multer'
 
 const storage = multer.memoryStorage();
 

@@ -1,16 +1,23 @@
-const mongoose = require("mongoose");
+// src/models/sizechart.model.js
+import mongoose from "mongoose";
 
 const sizeSchema = new mongoose.Schema({
-  label: String,
+  label: { type: String, required: true },
+  // common numeric measurements (optional)
   bust: Number,
   waist: Number,
-  hips: Number,
+  hip: Number,
+  hips: Number,      // kept both just in case older data uses 'hips'
   length: Number,
-});
+  shoulder: Number,
+  chest: Number,
+  brandSize: Number,
+}, { _id: false });
 
 const sizeChartSchema = new mongoose.Schema({
   category: { type: String, required: true, unique: true },
-  sizes: [sizeSchema],
-});
+  sizes: { type: [sizeSchema], default: [] },
+}, { timestamps: true });
 
-module.exports = mongoose.model("SizeChart", sizeChartSchema);
+const SizeChart = mongoose.model("SizeChart", sizeChartSchema);
+export default SizeChart;
