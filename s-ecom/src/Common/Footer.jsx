@@ -12,7 +12,7 @@ const Icon = ({ children, ...props }) => (
 export default function Footer() {
   return (
     // CHANGE 1: Use Header's background and dark text color
-    <footer className="bg-[#DFF200] text-[#111111] mt-8">
+    <footer className="bg-[#DFF200] text-[#111111]">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Brand + social */}
