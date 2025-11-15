@@ -153,27 +153,60 @@ export default function Header() {
       <header ref={headerRef} className={`w-full bg-[#DFF200] text-[#111111] sticky top-0 z-50 transition-all duration-300 ${scrolled ? "shadow-xl" : "shadow-md"}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           {/* Top Bar - Desktop Only */}
-          <div className="hidden md:flex items-center justify-between py-2 border-b border-[#CBE600]/30 text-sm">
-            <div className="flex items-center gap-6 text-[#111111]/70">
-              <a href="tel:+1234567890" className="hover:text-[#111111] transition-colors flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          <div className="flex flex-col sm:flex-row items-center justify-between py-2 border-b border-[#CBE600]/30 text-xs sm:text-sm gap-2">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 text-[#111111]/70 flex-wrap justify-center sm:justify-start">
+              <a
+                href="tel:+1234567890"
+                className="hover:text-[#111111] transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  />
                 </svg>
-                +123 456 7890
+                <span>+123 456 7890</span>
               </a>
-              <a href="mailto:info@venus.com" className="hover:text-[#111111] transition-colors flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <a
+                href="mailto:info@venus.com"
+                className="hover:text-[#111111] transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
                 </svg>
-                info@venus.com
+                <span>info@venus.com</span>
               </a>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-[#111111]/70">Free Shipping on Orders Over $50</span>
+            <div className="flex items-center gap-3 xl:gap-4">
+              <span className="text-[#111111]/70 text-xs sm:text-sm text-center sm:text-left">
+                Free Shipping on Orders Over $50
+              </span>
               <div className="flex gap-2">
                 {["facebook", "instagram", "twitter"].map((social) => (
-                  <a key={social} href={`#${social}`} className="w-7 h-7 rounded-full bg-[#CBE600] hover:bg-[#111111] text-[#111111] hover:text-[#DFF200] flex items-center justify-center transition-all duration-300" aria-label={social}>
-                    <span className="text-xs font-bold">{social[0].toUpperCase()}</span>
+                  <a
+                    key={social}
+                    href={`#${social}`}
+                    className="w-6 h-6 xl:w-7 xl:h-7 rounded-full bg-[#CBE600] hover:bg-[#111111] text-[#111111] hover:text-[#DFF200] flex items-center justify-center transition-all duration-300 text-xs font-bold"
+                    aria-label={social}
+                  >
+                    {social[0].toUpperCase()}
                   </a>
                 ))}
               </div>
@@ -181,9 +214,10 @@ export default function Header() {
           </div>
 
           {/* Main Header */}
-          <div className="flex items-center justify-between h-20 md:h-24">
+          <div className="flex items-center justify-between h-16 md:h-20 lg:h-24">
             {/* Mobile Menu Button */}
-            <button className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
+            <button 
+            className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
               {mobileMenuOpen ? <CloseIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
             </button>
 
@@ -199,8 +233,8 @@ export default function Header() {
 
             {/* Desktop Navigation */}
 {/* Desktop Navigation */}
-<nav className="hidden md:flex flex-1 justify-center px-8 relative">
-  <ul className="flex items-center gap-1 font-semibold uppercase tracking-wider text-sm lg:text-base">
+<nav className="hidden lg:flex flex-1 justify-center px-8 relative">
+              <ul className="flex items-center gap-1 font-semibold uppercase tracking-wider text-sm lg:text-base">
     {navigation.map((nav) => {
       const isMega = Array.isArray(nav.categories) && nav.categories.length > 0;
       const isOpen = openMenu === nav.id;
@@ -227,7 +261,7 @@ export default function Header() {
           {isMega && (
             // centered relative to the nav: left-1/2 + -translate-x-1/2
             <div
-              className={`absolute left-[540px] w-[1250px] transform -translate-x-1/2 mt-6 bg-white text-[#111111] border-[#CBE600] border-1 rounded-lg shadow-2xl transition-all duration-300 pointer-events-auto ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-4"}`}
+              className={`absolute left-[540px] w-[1250px] transform -translate-x-1/2 mt-6 bg-[#FFFDF6] text-[#111111] border-[#CBE600] border-1 rounded-lg shadow-2xl transition-all duration-300 pointer-events-auto ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-4"}`}
               onMouseEnter={() => handleMouseEnter(nav.id)}
               onMouseLeave={handleMouseLeave}
               role="menu"
@@ -277,10 +311,10 @@ export default function Header() {
 
 
             {/* Action Icons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 mg:gap-2">
               <button aria-label="Search" className={iconButtonClass}>
-                <SearchIcon className="w-6 h-6" />
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#111111] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                <SearchIcon className="w-5 h-5 md:w-6 md:h-6" />
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#111111] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden lg:block">
                   Search
                 </span>
               </button>
@@ -306,7 +340,7 @@ export default function Header() {
                     </div>
                   ) : (
                     <>
-                      <UserIcon className="w-6 h-6" />
+                      <UserIcon className="w-5 h-5 md:w-6 md:h-6" />
                       <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#111111] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                         Account
                       </span>
@@ -340,13 +374,13 @@ export default function Header() {
               <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} startWithRegister={startWithRegister} />
 
               <button aria-label="Cart" className={`${iconButtonClass} relative`}>
-                <CartIcon className="w-6 h-6" />
+                <CartIcon className="w-5 h-5 md:w-6 md:h-6" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#CBE600] text-[#111111] text-xs font-bold rounded-full flex items-center justify-center border-2 border-[#DFF200] shadow-lg">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-[#CBE600] text-[#111111] text-[10px] md:text-xs font-bold rounded-full flex items-center justify-center border-2 border-[#DFF200] shadow-lg">
                     {cartCount}
                   </span>
                 )}
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#111111] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#111111] text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden lg:block">
                   Cart ({cartCount})
                 </span>
               </button>
@@ -356,17 +390,21 @@ export default function Header() {
       </header>
 
       {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300 ${mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`} onClick={() => setMobileMenuOpen(false)} />
+      <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`} onClick={() => setMobileMenuOpen(false)} />
 
 {/* Mobile Menu Drawer */}
-<div className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] z-50 md:hidden transition-transform duration-300 ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+<div className={`fixed top-0 left-0 h-full w-80 max-w-[85vw] z-50 lg:hidden transition-transform duration-300 ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
 
   {/* Use same yellow header color as desktop and remove extra borders */}
   <div className="h-full overflow-y-auto bg-white">
     {/* Mobile Menu Header (yellow) */}
-    <div className="bg-[#DFF200] p-6 flex items-center justify-between">
-      <img src="https://placehold.co/100x40/111111/DFF200?text=VENUS" alt="Logo" className="h-10" />
-      <button onClick={() => setMobileMenuOpen(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" aria-label="Close menu">
+    <div className="bg-[#DFF200] p-4 md:p-6 flex items-center justify-between">
+            <img
+              src="logo/logo.jpeg"
+              alt="Logo"
+              className="h-10 rounded-full"
+            />
+          <button onClick={() => setMobileMenuOpen(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" aria-label="Close menu">
         <CloseIcon className="w-6 h-6" />
       </button>
     </div>

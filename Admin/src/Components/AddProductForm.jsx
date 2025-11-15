@@ -129,23 +129,42 @@ const AddProductForm = () => {
   };
 
   // file input (default "Choose Files" styling) - updates selectedFiles but does not yet upload
-  const handleFileChange = (e) => {
-    const filesArr = Array.from(e.target.files);
-    setSelectedFiles(filesArr);
-    // also keep internal images and previews
-    const limited = filesArr.slice(0, 4);
-    setImages(limited);
-    const previews = limited.map((f) => URL.createObjectURL(f));
-    setPreviewImages(previews);
-  };
+const handleFileChange = (e) => {
+  const filesArr = Array.from(e.target.files || []);
+  // keep the raw File objects for upload
+  const limited = filesArr.slice(0, 4);
+  setSelectedFiles(limited); // used for UI list
+  setImages(limited); // these must be File objects sent to backend
+
+  // create preview URLs (revoke old ones to avoid memory leak)
+  setPreviewImages((prev) => {
+    // revoke previous
+    prev.forEach(src => { try { URL.revokeObjectURL(src); } catch(e){} });
+    return limited.map((f) => URL.createObjectURL(f));
+  });
+};
+
 
   // Build FormData and dispatch create or update
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+// Build FormData and dispatch create or update
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    // ensure images state contains File objects (fallback to selectedFiles)
+    const filesToSend = (Array.isArray(images) && images.length > 0) ? images : (Array.isArray(selectedFiles) ? selectedFiles : []);
+
+    // Basic validation
+    if (!filesToSend || filesToSend.length === 0) {
+      console.error("No files to upload");
+      setSuccess(false);
+      setSuccessMessage("Please choose at least one image.");
+      return;
+    }
 
     const payload = new FormData();
 
-    // Append simple fields
+    // Append simple fields (always as strings)
     const keysToAppend = [
       "brand",
       "title",
@@ -160,95 +179,122 @@ const AddProductForm = () => {
       "thirdLevelCategory",
       "freeSize",
     ];
+
     keysToAppend.forEach((k) => {
-      if (formData[k] !== undefined && formData[k] !== null) {
-        payload.append(k, formData[k]);
-      } else {
-        payload.append(k, "");
-      }
+      // convert undefined/null -> empty string
+      const val = formData[k] !== undefined && formData[k] !== null ? formData[k] : "";
+      payload.append(k, String(val));
     });
 
-    // Append sizes (array) as JSON
-    payload.append("size", JSON.stringify(formData.size || []));
+    // If color can be an array, send as JSON string to be robust on backend
+    if (Array.isArray(formData.color)) {
+      payload.set("color", JSON.stringify(formData.color));
+    } else {
+      // keep as-is (string)
+      // If it's a comma separated string you can still parse on backend
+      payload.set("color", formData.color ?? "");
+    }
 
-    // Append image files
-    images.forEach((file) => {
+    // Append sizes as JSON string (backend expects JSON string)
+    payload.set("size", JSON.stringify(formData.size || []));
+
+    // Append each File under the SAME field name that multer expects: "images"
+    // Keep order and limit to 4
+    filesToSend.slice(0, 4).forEach((file) => {
       payload.append("images", file);
     });
 
-    try {
-      if (isEditing) {
-        payload.append("productId", formData._id);
-        await dispatch(updateProduct(payload)); // make sure updateProduct action returns a promise
-        setSuccess(true);
-        setSuccessMessage("Product updated successfully");
-      } else {
-        await dispatch(createProduct(payload));
-        setSuccess(true);
-        setSuccessMessage("Product created successfully");
-
-        // reset form
-        setFormData({
-          _id: null,
-          images: "",
-          brand: "",
-          title: "",
-          color: "",
-          price: "",
-          discountedPrice: "",
-          discountPercentage: "",
-          topLevelCategory: "",
-          secondLevelCategory: "",
-          thirdLevelCategory: "",
-          description: "",
-          quantity: "",
-          size: [],
-          freeSize: "",
-        });
-        setImages([]);
-        setSelectedFiles([]);
-        setPreviewImages([]);
-        setSizeChart(null);
-      }
-
-      // Optionally navigate back to products list after success
-      // navigate("/admin/products");
-    } catch (err) {
-      console.error("submit error:", err);
-      setSuccess(false);
-      setSuccessMessage("Action failed. Check console for details.");
+    // If editing, attach product id
+    if (isEditing && formData._id) {
+      payload.append("productId", formData._id);
     }
-  };
+
+    // Dispatch the action. Most thunk/RTK actions return a promise — await it.
+    // If your action creator expects raw FormData, this works. If it expects an object,
+    // adapt the action to accept FormData or send with fetch/axios here.
+    for (const pair of payload.entries()) {
+  if (pair[1] instanceof File) console.log("FormData file:", pair[0], pair[1].name, pair[1].size);
+  else console.log("FormData field:", pair[0], pair[1]);
+}
+
+    const result = await dispatch(isEditing ? updateProduct(payload) : createProduct(payload));
+
+    // If your action returns a rejected promise it will throw and be caught below.
+    // If it returns a success payload, handle it (optional)
+    console.log("submit result:", result);
+
+    // Show success and reset form
+    setSuccess(true);
+    setSuccessMessage(isEditing ? "Product updated successfully" : "Product created successfully");
+
+    if (!isEditing) {
+      setFormData({
+        _id: null,
+        images: "",
+        brand: "",
+        title: "",
+        color: "",
+        price: "",
+        discountedPrice: "",
+        discountPercentage: "",
+        topLevelCategory: "",
+        secondLevelCategory: "",
+        thirdLevelCategory: "",
+        description: "",
+        quantity: "",
+        size: [],
+        freeSize: "",
+      });
+      setImages([]);
+      setSelectedFiles([]);
+      setPreviewImages([]);
+      setSizeChart(null);
+    }
+
+    // optional: navigate after create/update
+    // navigate("/admin/products");
+  } catch (err) {
+    // If your action uses rejectWithValue or throws, you'll catch here
+    console.error("submit error:", err);
+    setSuccess(false);
+    // if err.response exists (axios) prefer that, otherwise generic message
+    const message = err?.message || "Action failed. Check console for details.";
+    setSuccessMessage(message);
+  }
+};
+
 
   // When thirdLevelCategory changes, fetch size chart (only when not editing or when explicitly changed)
 useEffect(() => {
   const third = formData.thirdLevelCategory;
-  // debug:
   console.log("Selected 3rd-level category ->", third);
-
   if (!third) {
     setSizeChart(null);
     setFormData((prev) => ({ ...prev, size: [] }));
     return;
   }
-
   (async () => {
     try {
-      // Ensure API_BASE_URL is defined (falls back to empty string so fetch goes to same origin)
-      const base = typeof API_BASE_URL !== "undefined" && API_BASE_URL ? API_BASE_URL : "";
-      const url = `${base}/api/admin/${encodeURIComponent(third)}`;
+      const base = (typeof API_BASE_URL !== "undefined" && API_BASE_URL) || import.meta.env.VITE_React_BASE_API_URL || "";
+      const url = `${base}api/admin/${encodeURIComponent(third)}`;
       console.log("Fetching size chart from:", url);
 
       const res = await fetch(url, { method: "GET" });
-
+      const ct = res.headers.get("content-type") || "";
       if (!res.ok) {
-        // log and bail
-        console.error("Size chart fetch failed:", res.status, await res.text());
+        const txt = await res.text();
+        console.error("Size chart fetch failed:", res.status, txt);
         setSizeChart(null);
         setFormData((prev) => ({ ...prev, size: [] }));
         return;
       }
-
+      if (!ct.includes("application/json")) {
+        const text = await res.text();
+        console.error("Expected JSON but got HTML/text:", text.slice(0, 400));
+        setSizeChart(null);
+        setFormData((prev) => ({ ...prev, size: [] }));
+        return;
+      }
       const data = await res.json();
       console.log("Size chart response:", data);
 
@@ -258,8 +304,6 @@ useEffect(() => {
         return;
       }
 
-      // map sizes into formData.size = [{ name: label, quantity: 0 }]
-      // If you're editing product and it already has sizes, preserve quantities for matching labels
       const existingSizesMap = new Map((formData.size || []).map(s => [s.name, s.quantity]));
       const formattedSizes = data.sizes.map((sizeObj) => ({
         name: sizeObj.label,
@@ -267,14 +311,7 @@ useEffect(() => {
       }));
 
       setSizeChart(data);
-
-      // Only overwrite formData.size if user is NOT editing an existing product (or you want to overwrite)
-      if (!productToUpdate) {
-        setFormData((prev) => ({ ...prev, size: formattedSizes }));
-      } else {
-        // if productToUpdate exists, still set size structure so UI can show chart (but preserve product sizes if any)
-        setFormData((prev) => ({ ...prev, size: formattedSizes }));
-      }
+      setFormData((prev) => ({ ...prev, size: formattedSizes }));
     } catch (err) {
       console.error("Size chart fetch error:", err);
       setSizeChart(null);
@@ -282,6 +319,7 @@ useEffect(() => {
     }
   })();
 }, [formData.thirdLevelCategory, productToUpdate]);
+
 
   // Compute second and third level options safely
   const secondLevelOptions = formData.topLevelCategory

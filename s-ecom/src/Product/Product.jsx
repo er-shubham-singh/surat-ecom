@@ -202,13 +202,13 @@ const ProductPage = () => {
 
   const renderStars = (rating) => {
     return (
-      <div className="flex gap-1">
+      <div className="flex gap-0.5 sm:gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <span key={star}>
             {star <= rating ? (
-              <Star className="w-4 h-4 fill-[#CBE600] text-[#CBE600]" />
+              <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-[#CBE600] text-[#CBE600]" />
             ) : (
-              <StarOff className="w-4 h-4 text-gray-300" />
+              <StarOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" />
             )}
           </span>
         ))}
@@ -272,26 +272,46 @@ const ProductPage = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFDF6]">
+      {/* Mobile Filter Overlay */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
+          showFilters ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+        onClick={() => setShowFilters(false)}
+      />
+
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#8A6F4F] to-[#6B5B4A] text-white py-16 px-6">
+      <div className="bg-linear-to-r from-[#8A6F4F] to-[#6B5B4A] text-white py-8 sm:py-12 md:py-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 text-sm mb-4 text-white/80">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm mb-3 sm:mb-4 text-white/80">
             <span>Home</span>
             <span>/</span>
             <span>Products</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-serif font-light mb-4">Our Collection</h1>
-          <p className="text-lg text-white/90 max-w-2xl">Discover beauty essentials crafted for elegance</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-light mb-3 sm:mb-4">
+            Our Collection
+          </h1>
+          <p className="text-sm sm:text-base md:text-lg text-white/90 max-w-2xl">
+            Discover beauty essentials crafted for elegance
+          </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar Filters */}
-          <aside className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+          <aside
+            className={`fixed lg:static top-0 left-0 h-full lg:h-auto w-80 max-w-[85vw] lg:w-64 xl:w-72 z-50 lg:z-auto transition-transform duration-300 lg:transition-none ${
+              showFilters
+                ? "translate-x-0"
+                : "-translate-x-full lg:translate-x-0"
+            }`}
+          >
+            <div className="bg-white rounded-none lg:rounded-xl shadow-lg p-4 sm:p-5 md:p-6 lg:p-5 xl:p-6 lg:sticky lg:top-24 h-full lg:h-auto overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-serif font-semibold text-[#8A6F4F]">Filter by</h2>
+                <h2 className="text-xl sm:text-2xl lg:text-xl xl:text-2xl font-serif font-semibold text-[#8A6F4F]">
+                  Filter by
+                </h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={clearFilters}
@@ -310,53 +330,87 @@ const ProductPage = () => {
               </div>
 
               {/* Availability Filter */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
+              <div className="mb-4 sm:mb-5 lg:mb-6 pb-4 sm:pb-5 lg:pb-6 border-b border-gray-200">
                 <button
                   onClick={() => toggleSection("availability")}
                   className="flex items-center justify-between w-full mb-4 text-left"
                 >
                   <h3 className="font-semibold text-[#222426]">Availability</h3>
-                  <ChevronDown className={`w-5 h-5 text-gray-400 transform transition-transform ${openSections.availability ? "rotate-180" : "rotate-0"}`} />
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-400 transform transition-transform ${
+                      openSections.availability ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
                 </button>
 
-                <div className={`${openSections.availability ? "block" : "hidden"}`}>
+                <div
+                  className={`${
+                    openSections.availability ? "block" : "hidden"
+                  }`}
+                >
                   <label className="flex items-center gap-3 cursor-pointer group mb-2">
                     <input
                       type="checkbox"
                       checked={filters.availability.includes("in-stock")}
-                      onChange={() => updateMultiFilter("availability", "in-stock")}
+                      onChange={() =>
+                        updateMultiFilter("availability", "in-stock")
+                      }
                       className="w-4 h-4 rounded border-gray-300 text-[#CBE600] focus:ring-[#CBE600]"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-[#8A6F4F] transition-colors">In Stock ({products.filter(p=>p.availability==='in-stock').length})</span>
+                    <span className="text-sm text-gray-700 group-hover:text-[#8A6F4F] transition-colors">
+                      In Stock (
+                      {
+                        products.filter((p) => p.availability === "in-stock")
+                          .length
+                      }
+                      )
+                    </span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={filters.availability.includes("low-stock")}
-                      onChange={() => updateMultiFilter("availability", "low-stock")}
+                      onChange={() =>
+                        updateMultiFilter("availability", "low-stock")
+                      }
                       className="w-4 h-4 rounded border-gray-300 text-[#CBE600] focus:ring-[#CBE600]"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-[#8A6F4F] transition-colors">Low Stock ({products.filter(p=>p.availability==='low-stock').length})</span>
+                    <span className="text-sm text-gray-700 group-hover:text-[#8A6F4F] transition-colors">
+                      Low Stock (
+                      {
+                        products.filter((p) => p.availability === "low-stock")
+                          .length
+                      }
+                      )
+                    </span>
                   </label>
                 </div>
               </div>
 
               {/* Price Filter */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
+              <div className="mb-4 sm:mb-5 lg:mb-6 pb-4 sm:pb-5 lg:pb-6 border-b border-gray-200">
                 <button
                   onClick={() => toggleSection("priceRange")}
                   className="flex items-center justify-between w-full mb-4 text-left"
                 >
                   <h3 className="font-semibold text-[#222426]">Price</h3>
-                  <ChevronDown className={`w-5 h-5 text-gray-400 transform transition-transform ${openSections.priceRange ? "rotate-180" : "rotate-0"}`} />
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-400 transform transition-transform ${
+                      openSections.priceRange ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
                 </button>
 
-                <div className={`${openSections.priceRange ? "block" : "hidden"}`}>
+                <div
+                  className={`${openSections.priceRange ? "block" : "hidden"}`}
+                >
                   <label className="flex items-center gap-3 cursor-pointer group mb-2">
                     <input
                       type="checkbox"
                       checked={filters.priceRange.includes("under-500")}
-                      onChange={() => updateMultiFilter("priceRange", "under-500")}
+                      onChange={() =>
+                        updateMultiFilter("priceRange", "under-500")
+                      }
                       className="w-4 h-4 rounded border-gray-300 text-[#CBE600] focus:ring-[#CBE600]"
                     />
                     <span className="text-sm text-gray-700">Under ₹500</span>
@@ -365,7 +419,9 @@ const ProductPage = () => {
                     <input
                       type="checkbox"
                       checked={filters.priceRange.includes("500-1000")}
-                      onChange={() => updateMultiFilter("priceRange", "500-1000")}
+                      onChange={() =>
+                        updateMultiFilter("priceRange", "500-1000")
+                      }
                       className="w-4 h-4 rounded border-gray-300 text-[#CBE600] focus:ring-[#CBE600]"
                     />
                     <span className="text-sm text-gray-700">₹500 - ₹1000</span>
@@ -374,7 +430,9 @@ const ProductPage = () => {
                     <input
                       type="checkbox"
                       checked={filters.priceRange.includes("1000-1500")}
-                      onChange={() => updateMultiFilter("priceRange", "1000-1500")}
+                      onChange={() =>
+                        updateMultiFilter("priceRange", "1000-1500")
+                      }
                       className="w-4 h-4 rounded border-gray-300 text-[#CBE600] focus:ring-[#CBE600]"
                     />
                     <span className="text-sm text-gray-700">₹1000 - ₹1500</span>
@@ -383,7 +441,9 @@ const ProductPage = () => {
                     <input
                       type="checkbox"
                       checked={filters.priceRange.includes("above-1500")}
-                      onChange={() => updateMultiFilter("priceRange", "above-1500")}
+                      onChange={() =>
+                        updateMultiFilter("priceRange", "above-1500")
+                      }
                       className="w-4 h-4 rounded border-gray-300 text-[#CBE600] focus:ring-[#CBE600]"
                     />
                     <span className="text-sm text-gray-700">Above ₹1500</span>
@@ -392,13 +452,17 @@ const ProductPage = () => {
               </div>
 
               {/* Color Filter */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
+              <div className="mb-4 sm:mb-5 lg:mb-6 pb-4 sm:pb-5 lg:pb-6 border-b border-gray-200">
                 <button
                   onClick={() => toggleSection("color")}
                   className="flex items-center justify-between w-full mb-4 text-left"
                 >
                   <h3 className="font-semibold text-[#222426]">Color</h3>
-                  <ChevronDown className={`w-5 h-5 text-gray-400 transform transition-transform ${openSections.color ? "rotate-180" : "rotate-0"}`} />
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-400 transform transition-transform ${
+                      openSections.color ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
                 </button>
 
                 <div className={`${openSections.color ? "block" : "hidden"}`}>
@@ -407,7 +471,10 @@ const ProductPage = () => {
                       const selected = filters.color.includes(colKey);
                       const bgStyle =
                         colKey === "multicolor"
-                          ? { backgroundImage: "linear-gradient(90deg,#ff7a7a,#ffd36e,#9ae66e)" }
+                          ? {
+                              backgroundImage:
+                                "linear-gradient(90deg,#ff7a7a,#ffd36e,#9ae66e)",
+                            }
                           : { backgroundColor: colorMap[colKey] || "#fff" };
 
                       return (
@@ -415,7 +482,11 @@ const ProductPage = () => {
                           key={colKey}
                           onClick={() => updateMultiFilter("color", colKey)}
                           title={colKey}
-                          className={`w-10 h-10 rounded-full border-2 ${selected ? "border-[#8A6F4F] scale-110" : "border-gray-200"} transform transition-all`}
+                          className={`w-10 h-10 rounded-full border-2 ${
+                            selected
+                              ? "border-[#8A6F4F] scale-110"
+                              : "border-gray-200"
+                          } transform transition-all`}
                           style={bgStyle}
                           aria-pressed={selected}
                         />
@@ -432,19 +503,30 @@ const ProductPage = () => {
                   className="flex items-center justify-between w-full mb-4 text-left"
                 >
                   <h3 className="font-semibold text-[#222426]">Product Type</h3>
-                  <ChevronDown className={`w-5 h-5 text-gray-400 transform transition-transform ${openSections.category ? "rotate-180" : "rotate-0"}`} />
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-400 transform transition-transform ${
+                      openSections.category ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
                 </button>
 
-                <div className={`${openSections.category ? "block" : "hidden"}`}>
+                <div
+                  className={`${openSections.category ? "block" : "hidden"}`}
+                >
                   {["makeup", "skincare", "tools", "sets"].map((cat) => (
-                    <label key={cat} className="flex items-center gap-3 cursor-pointer group mb-2">
+                    <label
+                      key={cat}
+                      className="flex items-center gap-3 cursor-pointer group mb-2"
+                    >
                       <input
                         type="checkbox"
                         checked={filters.category.includes(cat)}
                         onChange={() => updateMultiFilter("category", cat)}
                         className="w-4 h-4 rounded border-gray-300 text-[#CBE600] focus:ring-[#CBE600]"
                       />
-                      <span className="text-sm text-gray-700 capitalize">{cat}</span>
+                      <span className="text-sm text-gray-700 capitalize">
+                        {cat}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -455,24 +537,26 @@ const ProductPage = () => {
           {/* Products Grid */}
           <main className="flex-1">
             {/* Sort and Filter Bar */}
-            <div className="flex items-center justify-between mb-8 bg-white rounded-xl shadow-md p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-6 lg:mb-8 bg-white rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 border-2 border-[#8A6F4F] text-[#8A6F4F] rounded-lg hover:bg-[#8A6F4F] hover:text-white transition-all duration-300"
+                className="lg:hidden flex items-center gap-2 px-3 sm:px-4 py-2 border-2 border-[#8A6F4F] text-[#8A6F4F] text-sm rounded-lg hover:bg-[#8A6F4F] hover:text-white transition-all duration-300"
               >
                 <SlidersHorizontal className="w-5 h-5" />
                 <span>Filters</span>
               </button>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-5 h-5 text-[#8A6F4F]" />
-                  <span className="text-sm font-medium text-[#222426]">Sort by:</span>
+                  <SlidersHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-[#8A6F4F]" />
+                  <span className="text-xs sm:text-sm font-medium text-[#222426]">
+                    Sort by:
+                  </span>
                 </div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm font-medium text-[#222426] focus:border-[#CBE600] focus:outline-none focus:ring-2 focus:ring-[#CBE600]/20 transition-all"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-gray-200 rounded-lg text-xs sm:text-sm font-medium text-[#222426] focus:border-[#CBE600] focus:outline-none focus:ring-2 focus:ring-[#CBE600]/20 transition-all flex-1 sm:flex-initial"
                 >
                   <option value="featured">Featured</option>
                   <option value="price-low">Price: Low to High</option>
@@ -482,58 +566,74 @@ const ProductPage = () => {
                 </select>
               </div>
 
-              <div className="text-sm text-gray-600">
-                <span className="font-semibold text-[#8A6F4F]">{filteredProducts.length}</span> products
+              <div className="text-xs sm:text-sm text-gray-600 w-full sm:w-auto text-center sm:text-left">
+                <span className="font-semibold text-[#8A6F4F]">
+                  {filteredProducts.length}
+                </span>{" "}
+                products
               </div>
             </div>
 
             {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-5 xl:gap-6">
               {filteredProducts.map((product) => (
-                <article key={product.id} className="group bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+                <article
+                  key={product.id}
+                  className="group bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-lg border-2 border-transparent hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl sm:hover:-translate-y-2 flex flex-col h-full"
+                >
                   <div className="relative overflow-hidden bg-gray-100 aspect-square">
                     <img
                       src={product.image}
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                    {product.availability === 'low-stock' && (
+                    {product.availability === "low-stock" && (
                       <span className="absolute top-4 left-4 px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
                         Low Stock
                       </span>
                     )}
                   </div>
 
-                  <div className="p-5">
-                    <h3 className="text-base font-semibold text-[#222426] mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">
+                  {/* CONTENT SECTION — flex column so button sticks to bottom */}
+                  <div className="p-3 sm:p-4 md:p-4 lg:p-4 xl:p-5 flex flex-col grow">
+                    <h3 className="text-xs sm:text-sm md:text-base font-semibold text-[#222426] mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">
                       {product.name}
                     </h3>
 
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
                       {renderStars(product.rating)}
                       {product.reviews > 0 ? (
-                        <span className="text-xs text-gray-500">
-                          {product.reviews === 1 ? '1 review' : `${product.reviews} reviews`}
+                        <span className="text-[10px] sm:text-xs text-gray-500">
+                          {product.reviews === 1
+                            ? "1 review"
+                            : `${product.reviews} reviews`}
                         </span>
                       ) : (
                         <span className="text-xs text-gray-400">No review</span>
                       )}
                     </div>
 
-                    <div className="mb-4">
-                      <span className="text-xl font-bold text-[#8A6F4F]">Rs. {product.price}</span>
+                    <div className="mb-2 sm:mb-3 md:mb-4">
+                      <span className="text-base sm:text-lg md:text-xl font-bold text-[#8A6F4F]">
+                        Rs. {product.price}
+                      </span>
                     </div>
 
                     {product.shades && (
-                      <div className="flex gap-2 mb-4">
+                      <div className="flex gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                         {product.shades.map((shade, idx) => (
                           <div
                             key={idx}
-                            className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-[#CBE600] transition-all cursor-pointer"
+                            className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full border-2 border-gray-300 hover:border-[#CBE600] transition-all cursor-pointer"
                             style={{
-                              backgroundColor: shade === 'Pearl' ? '#FFC0CB' : shade === 'Gold' ? '#FFD700' : '#CD7F32'
+                              backgroundColor:
+                                shade === "Pearl"
+                                  ? "#FFC0CB"
+                                  : shade === "Gold"
+                                  ? "#FFD700"
+                                  : "#CD7F32",
                             }}
                             title={shade}
                           />
@@ -541,8 +641,9 @@ const ProductPage = () => {
                       </div>
                     )}
 
-                    <button className="w-full py-3 px-4 bg-black text-white text-sm font-semibold rounded-lg hover:bg-[#DFF200] hover:text-black transition-all duration-300 uppercase tracking-wide">
-                      {product.shades ? 'Select Shades' : 'Add to bag'}
+                    {/* BUTTON ALWAYS AT BOTTOM */}
+                    <button className="mt-auto w-full py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 bg-black text-white text-[10px] sm:text-xs md:text-sm font-semibold rounded-lg hover:bg-[#DFF200] hover:text-black transition-all duration-300 uppercase tracking-wide">
+                      {product.shades ? "Select Shades" : "Add to bag"}
                     </button>
                   </div>
                 </article>
