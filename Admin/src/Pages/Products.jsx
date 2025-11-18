@@ -22,7 +22,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { findProducts, deleteProduct } from "../Redux/Customers/Product/Action";
+import { findProducts, deleteProduct } from '../Redux/Customers/Product/Action';
 
 
 const ProductsTable = () => {
