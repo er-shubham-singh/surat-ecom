@@ -5,7 +5,7 @@ const mongoDbUrl = process.env.MONGO_URI;
 
 const connectDb = async () => {
   try {
-    await mongoose.connect("mongodb://localhost:27017/se", {
+    await mongoose.connect(mongoDbUrl, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
