@@ -138,7 +138,7 @@ const Home = () => {
               loading="lazy"
               className="w-full h-full object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
           </div>
         ))}
 
@@ -322,7 +322,7 @@ const Home = () => {
                       loading="lazy"
                       className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <button
                       aria-label={`Explore ${item.title}`}
@@ -332,7 +332,7 @@ const Home = () => {
                     </button>
                   </div>
 
-                  <div className="py-2 sm:py-3 md:py-4 lg:py-5 px-2 sm:px-3 text-center bg-gradient-to-b from-white to-gray-50">
+                  <div className="py-2 sm:py-3 md:py-4 lg:py-5 px-2 sm:px-3 text-center bg-linear-to-b from-white to-gray-50">
                     <h3 className="text-[10px] sm:text-xs md:text-sm lg:text-base font-semibold text-[#222426] uppercase tracking-wide group-hover:text-[#CBE600] transition-colors duration-300">
                       {item.title}
                     </h3>
@@ -413,8 +413,8 @@ const Home = () => {
 
         {/* MARQUEE */}
         <div className="w-full py-6 sm:py-8 md:py-10 relative">
-          <div className="absolute inset-y-0 left-0 w-16 sm:w-20 md:w-24 bg-gradient-to-r from-[#FFF9E8] to-transparent z-10" />
-          <div className="absolute inset-y-0 right-0 w-16 sm:w-20 md:w-24 bg-gradient-to-l from-[#FFF9E8] to-transparent z-10" />
+          <div className="absolute inset-y-0 left-0 w-16 sm:w-20 md:w-24 bg-linear-to-r from-[#FFF9E8] to-transparent z-10" />
+          <div className="absolute inset-y-0 right-0 w-16 sm:w-20 md:w-24 bg-linear-to-l from-[#FFF9E8] to-transparent z-10" />
 
           <div className="flex w-max animate-marquee gap-3 sm:gap-4 md:gap-6 px-2 sm:px-4 items-stretch">
             {[...winterImages, ...winterImages].map((img, idx) => (
@@ -431,14 +431,14 @@ const Home = () => {
                       loading="lazy"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <button className="absolute left-1/2 -translate-x-1/2 bottom-3 sm:bottom-4 px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 text-xs sm:text-sm font-bold uppercase rounded-full bg-[#DFF200] text-[#222426] opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
                       Explore
                     </button>
                   </div>
 
-                  <div className="py-3 sm:py-4 text-center bg-gradient-to-b from-white to-gray-50">
+                  <div className="py-3 sm:py-4 text-center bg-linear-to-b from-white to-gray-50">
                     <h3 className="text-xs sm:text-sm md:text-base font-semibold text-[#222426] uppercase tracking-wider">
                       Winter Essential {(idx % winterImages.length) + 1}
                     </h3>
@@ -498,7 +498,7 @@ const Home = () => {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
-                  <div className="relative w-full aspect-[4/5] overflow-hidden">
+                  <div className="relative w-full aspect-4/5 overflow-hidden">
                     <img
                       src={it.image}
                       alt={it.title}
@@ -517,7 +517,7 @@ const Home = () => {
                   </div>
 
                   {/* TITLE */}
-                  <div className="py-3 md:py-4 px-2 md:px-4 text-center bg-gradient-to-b from-white to-gray-50">
+                  <div className="py-3 md:py-4 px-2 md:px-4 text-center bg-linear-to-b from-white to-gray-50">
                     <h3 className="text-sm md:text-base font-semibold text-[#222426] uppercase tracking-wide group-hover:text-[#CBE600] transition-colors duration-300">
                       {it.title}
                     </h3>
@@ -576,17 +576,7 @@ const Home = () => {
               <Link to="/blog/winter-styling-guide" className="block h-full">
                 <div className="bg-white rounded-xl overflow-hidden shadow-xl border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
                   {/* IMAGE WRAPPER — FULLY RESPONSIVE */}
-                  <div
-                    className="
-          relative w-full 
-          h-[260px]         /* small screens */
-          sm:h-80
-          md:h-[380px]
-          lg:h-[480px]
-          xl:h-[520px] 
-          overflow-hidden grow
-        "
-                  >
+                  <div className="relative w-full h-[260px] sm:h-80 md:h-[380px] lg:h-[480px] xl:h-[520px] overflow-hidden grow">
                     <img
                       src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80"
                       alt="Winter styling guide"
@@ -646,16 +636,7 @@ const Home = () => {
               <Link to="/blog/sustainable-fashion" className="block w-full">
                 <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
                   {/* RESPONSIVE IMAGE HEIGHT */}
-                  <div
-                    className="
-          relative w-full 
-          h-[200px]       /* small screens */
-          sm:h-60
-          md:h-[260px]
-          lg:h-[300px]
-          overflow-hidden shrink-0
-        "
-                  >
+                  <div className=" relative w-full h-[200px] sm:h-60 md:h-[260px] lg:h-[300px] overflow-hidden shrink-0 ">
                     <img
                       src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80"
                       alt="Sustainable fashion"
@@ -774,7 +755,7 @@ const Home = () => {
                       alt="Office to evening style"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
                   </div>
 
                   {/* Content */}
@@ -830,7 +811,7 @@ const Home = () => {
                       alt="Accessory essentials"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
                   </div>
 
                   {/* Content */}

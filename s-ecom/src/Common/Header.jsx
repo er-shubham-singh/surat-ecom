@@ -295,7 +295,7 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <Link to="/" className="flex items-center space-x-3 group">
                 <div className="relative">
                   <div className="bg-[#CBE600] blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
@@ -345,7 +345,7 @@ export default function Header() {
 
                       {isMega && (
                         <div
-                          className={`absolute left-[540px] w-[1250px] transform -translate-x-1/2 mt-6 bg-[#FFFDF6] text-[#111111] border-[#CBE600] border-1 rounded-lg shadow-2xl transition-all duration-300 pointer-events-auto ${
+                          className={`absolute left-1/2 transform -translate-x-1/2 mt-6 bg-[#FFFDF6] text-[#111111] border-[#CBE600] border-1 rounded-lg shadow-2xl transition-all duration-300 pointer-events-auto w-[95vw] max-w-[1250px] ${
                             isOpen
                               ? "opacity-100 visible translate-y-0"
                               : "opacity-0 invisible -translate-y-4"

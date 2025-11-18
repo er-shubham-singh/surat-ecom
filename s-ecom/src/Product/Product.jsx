@@ -281,7 +281,7 @@ const ProductPage = () => {
       />
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#8A6F4F] to-[#6B5B4A] text-white py-8 sm:py-12 md:py-16 px-4 sm:px-6">
+      <div className="bg-linear-to-r from-[#8A6F4F] to-[#6B5B4A] text-white py-8 sm:py-12 md:py-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm mb-3 sm:mb-4 text-white/80">
             <span>Home</span>
@@ -587,7 +587,7 @@ const ProductPage = () => {
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     {product.availability === "low-stock" && (
                       <span className="absolute top-4 left-4 px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
@@ -597,7 +597,7 @@ const ProductPage = () => {
                   </div>
 
                   {/* CONTENT SECTION — flex column so button sticks to bottom */}
-                  <div className="p-3 sm:p-4 md:p-4 lg:p-4 xl:p-5 flex flex-col flex-grow">
+                  <div className="p-3 sm:p-4 md:p-4 lg:p-4 xl:p-5 flex flex-col grow">
                     <h3 className="text-xs sm:text-sm md:text-base font-semibold text-[#222426] mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">
                       {product.name}
                     </h3>
