@@ -353,6 +353,32 @@ useEffect(() => {
       ? categoryHierarchy[formData.topLevelCategory][formData.secondLevelCategory]
       : [];
 
+
+      // calculate percentage
+      // --- auto-calc discount percent when price or discountedPrice change ---
+useEffect(() => {
+  const p = Number(formData.price);
+  const dp = Number(formData.discountedPrice);
+
+  // Only calculate when both are valid finite numbers and price > 0
+  if (Number.isFinite(p) && Number.isFinite(dp) && p > 0) {
+    // Ensure discounted price is not greater than original price
+    const safeDp = Math.min(dp, p);
+    const percent = Math.round(((p - safeDp) / p) * 100);
+    // Only update if the value actually differs to avoid unnecessary state updates
+    if (String(formData.discountPercentage) !== String(percent)) {
+      setFormData((prev) => ({ ...prev, discountPercentage: percent }));
+    }
+  } else {
+    // If inputs are invalid/empty, clear the discountPercentage (keep empty string)
+    if (formData.discountPercentage !== "") {
+      setFormData((prev) => ({ ...prev, discountPercentage: "" }));
+    }
+  }
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [formData.price, formData.discountedPrice]);
+
+
   return (
     <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
       {/* File input */}
