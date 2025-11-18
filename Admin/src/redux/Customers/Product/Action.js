@@ -23,7 +23,7 @@ import {
   SEARCH_PRODUCTS_SUCCESS,
   SEARCH_PRODUCTS_FAILURE,
 } from "./ActionType";
-import api, { API_BASE_URL } from "../../../config/api";
+import api from "../../../Config/api";
 
 export const findProducts = (reqData) => async (dispatch) => {
   try {
@@ -90,7 +90,7 @@ export const createProduct = (formData) => async (dispatch) => {
     const token = localStorage.getItem("jwt") || null;
 
     const { data } = await api.post(
-      `${API_BASE_URL}/api/admin/products/`, // adjust if your backend endpoint differs
+      `/api/admin/products/`, // adjust if your backend endpoint differs
       formData,
       {
         headers: {
@@ -131,7 +131,7 @@ export const updateProduct = (formData, productId) => async (dispatch) => {
     const token = localStorage.getItem("jwt") || null;
 
     const { data } = await api.put(
-      `${API_BASE_URL}/api/admin/products/${productId}`,
+      `/api/admin/products/${productId}`,
       formData,
       {
         headers: {
