@@ -1,6 +1,6 @@
 // src/Common/Header.jsx
 import React, { useRef, useLayoutEffect, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import navigation from "../Config/navigation";
 import RegisterModal from "../Component/auth/Model/RegisterModel";
@@ -52,6 +52,7 @@ const Chevron = ({ open }) => (
 export default function Header() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const auth = useSelector((state) => state.auth || {});
   const { user, isAuthenticated } = auth;
@@ -144,6 +145,12 @@ export default function Header() {
     if (u.email) return u.email.split("@")[0];
     return "User";
   };
+
+
+  // handle navigation
+  useEffect(()=>{
+    const params = new URLSearchParams(location.search)
+  },[location])
 
   const displayName = getDisplayName(user);
   const firstChar = displayName ? displayName.trim().charAt(0).toUpperCase() : null;

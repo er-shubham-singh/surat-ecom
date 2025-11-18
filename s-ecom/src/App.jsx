@@ -17,9 +17,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/product" element={<ProductPage />} />
-        <Route path="/productdetailpage" element={ <ProductDetailsPage />} />
-        <Route path="cart" element={<CartPage />} />
+        <Route path="/:lavelOne/:lavelTwo/:lavelThree" element={<ProductPage />} />
+        <Route path="/product/:productId" element={ <ProductDetailsPage />} />
+        <Route path="/cart" element={<CartPage />} />
      </Routes>
      <Footer />
     </>

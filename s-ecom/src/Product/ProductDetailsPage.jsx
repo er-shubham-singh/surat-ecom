@@ -1,112 +1,208 @@
-import React, { useState } from 'react';
-import { Star, StarOff, Heart, Share2, ShoppingBag, Truck, RefreshCw, Shield, ChevronLeft, ChevronRight, Check, Minus, Plus } from 'lucide-react';
+// ProductDetailsPage.jsx
+import React, { useEffect, useState } from "react";
+import {
+  Star,
+  StarOff,
+  Heart,
+  Share2,
+  ShoppingBag,
+  Truck,
+  RefreshCw,
+  Shield,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Minus,
+  Plus,
+} from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { jwtDecode } from "jwt-decode";
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+
+// <-- adjust these paths to your project structure
+import { findProductById } from "../redux/Product/Action";
+import { addItemToCart, getCart } from "../redux/Cart/Action";
+import { getAllReviews, getRatingSummary } from "../redux/Review/Action";
 
 const ProductDetailsPage = () => {
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('M');
-  const [selectedColor, setSelectedColor] = useState('Rose Pink');
+  // UI / local state
+  const [loginAlert, setLoginAlert] = useState(false);
+  const [sizeChart, setSizeChart] = useState([]);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(0); // index
+  const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
   const [isFavorite, setIsFavorite] = useState(false);
+  const [activeTab, setActiveTab] = useState("description");
+  const [isLoading, setIsLoading] = useState(true);
+  const [sizeError, setSizeError] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const product = {
-    name: "Glowfly Liquid Highlighter",
-    price: 399,
-    originalPrice: 599,
-    rating: 5,
-    reviews: 24,
-    sku: "VG-GLH-001",
-    availability: "In Stock",
-    description: "Illuminate your natural beauty with our Glowfly Liquid Highlighter. This weightless, buildable formula delivers a luminous glow that enhances your features without looking overly shimmery. Perfect for all skin tones, it blends seamlessly and lasts all day.",
-    images: [
-      "https://images.unsplash.com/photo-1596704017254-9b121068ec31?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1631214524020-7e18db9a8f92?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=1200&q=80"
-    ],
-    colors: [
-      { name: "Rose Pink", hex: "#FFC0CB" },
-      { name: "Champagne Gold", hex: "#FFD700" },
-      { name: "Bronze", hex: "#CD7F32" },
-      { name: "Pearl", hex: "#F0EAD6" }
-    ],
-    sizes: ['S', 'M', 'L'],
-    features: [
-      "Lightweight, buildable formula",
-      "Long-lasting radiant finish",
-      "Suitable for all skin types",
-      "Cruelty-free & vegan",
-      "Dermatologically tested",
-      "Easy to blend"
-    ],
-    ingredients: "Aqua, Mica, Glycerin, Titanium Dioxide, Dimethicone, Phenoxyethanol, Tocopheryl Acetate, Fragrance",
-    howToUse: "Apply a small amount to the high points of your face - cheekbones, brow bones, bridge of nose, and cupid's bow. Blend with fingertips, brush, or sponge for a natural glow."
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { productId } = useParams();
+  const jwt = localStorage.getItem("jwt");
+
+  // Redux slices
+  const { customersProduct, review } = useSelector((store) => store);
+  // customersProduct.product should contain the product object from your reducer
+  const product = customersProduct?.product || {};
+
+  // reviews slice: adapt to your shape (this follows your prior code)
+  const reviewsList = Array.isArray(review?.reviews?.reviews)
+    ? review.reviews.reviews
+    : [];
+
+  // summary (ratingSummary)
+  const ratingSummary = review?.ratingSummary || {};
+
+  // safe fallbacks for arrays used in UI
+  const productImages =
+    product?.images?.length > 0
+      ? product.images
+      : product?.imageUrl?.length > 0
+      ? product.imageUrl
+      : product?.images || [];
+
+  const relatedProducts =
+    customersProduct?.products?.content?.slice(0, 4) || []; // fallback
+
+  // set initial selected image when product loads
+  useEffect(() => {
+    if (productImages.length > 0) {
+      setSelectedImage(0);
+      setIsLoading(false);
+    } else {
+      // if product exists but no images yet, stop loading
+      if (Object.keys(product).length > 0) setIsLoading(false);
+    }
+  }, [productImages, product]);
+
+  // load product & reviews & rating summary
+  useEffect(() => {
+    if (!productId) return;
+    const data = { productId, jwt };
+    dispatch(findProductById(data));
+    dispatch(getAllReviews(productId));
+    dispatch(getRatingSummary(productId));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
+
+  // fetch size chart for category (if available)
+  useEffect(() => {
+    const fetchSizeChart = async () => {
+      const categoryName = product?.category?.name || product?.category?.value || "";
+      if (!categoryName) {
+        setSizeChart([]);
+        return;
+      }
+
+      try {
+        const baseUrl = process.env.REACT_APP_API_BASE_URL || "";
+        // Keep your existing endpoint pattern; adjust if backend differs
+        const res = await fetch(
+          `${baseUrl}/api/admin/products/${encodeURIComponent(categoryName)}`
+        );
+        if (!res.ok) {
+          // no size chart found — ignore silently
+          setSizeChart([]);
+          return;
+        }
+        const data = await res.json();
+        setSizeChart(data.sizes || []);
+      } catch (error) {
+        console.error("Error fetching size chart:", error);
+        setSizeChart([]);
+      }
+    };
+
+    fetchSizeChart();
+  }, [product?.category]);
+
+  // helper: JWT expiry check
+  const isJwtExpired = (token) => {
+    if (!token) return true;
+    try {
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // seconds
+      return decoded.exp && decoded.exp < currentTime;
+    } catch (e) {
+      return true;
+    }
   };
 
-  const relatedProducts = [
-    {
-      id: 1,
-      name: "Velvet Matte Lipstick",
-      price: 699,
-      image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=400&q=80",
-      rating: 4
-    },
-    {
-      id: 2,
-      name: "Pearl Blush Duo",
-      price: 749,
-      image: "https://images.unsplash.com/photo-1617897903246-719242758050?auto=format&fit=crop&w=400&q=80",
-      rating: 5
-    },
-    {
-      id: 3,
-      name: "Volume Max Mascara",
-      price: 549,
-      image: "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?auto=format&fit=crop&w=400&q=80",
-      rating: 5
-    },
-    {
-      id: 4,
-      name: "Silk Finish Foundation",
-      price: 1599,
-      image: "https://images.unsplash.com/photo-1631730486572-226d1f595b68?auto=format&fit=crop&w=400&q=80",
-      rating: 4
-    }
-  ];
+  // Add to cart handler
+  const handleSubmit = async (e) => {
+    e && e.preventDefault && e.preventDefault();
 
-  const reviews = [
-    {
-      id: 1,
-      author: "Priya Sharma",
-      rating: 5,
-      date: "2025-01-05",
-      comment: "Absolutely love this highlighter! It gives such a natural glow without being too glittery. Perfect for everyday wear.",
-      verified: true
-    },
-    {
-      id: 2,
-      author: "Anjali Mehta",
-      rating: 5,
-      date: "2024-12-28",
-      comment: "Best highlighter I've ever used! The formula is smooth and blends beautifully. Highly recommend!",
-      verified: true
-    },
-    {
-      id: 3,
-      author: "Neha Kapoor",
-      rating: 4,
-      date: "2024-12-15",
-      comment: "Great product! Love the glow it gives. Only wish it came in more shades.",
-      verified: true
+    if (!jwt || jwt === "undefined" || isJwtExpired(jwt)) {
+      setLoginAlert(true);
+      return;
     }
-  ];
 
-  const renderStars = (rating) => {
+    // require size for products that have sizes
+    if (Array.isArray(product?.sizes) && product.sizes.length > 0 && !selectedSize) {
+      setSizeError(true);
+      return;
+    }
+
+    setSizeError(false);
+    setIsAdding(true);
+
+    try {
+      await dispatch(
+        addItemToCart({
+          data: { productId, size: selectedSize, quantity },
+          jwt,
+        })
+      );
+
+      // refresh cart and navigate
+      await dispatch(getCart(jwt));
+      navigate("/cart");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      // if backend tells us jwt expired
+      if (error.response?.data?.error === "jwt expired") {
+        setLoginAlert(true);
+      }
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  // share action
+  const handleShare = async () => {
+    const shareData = {
+      title: product?.title || product?.name || "Product",
+      text: "Check out this product!",
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Product link copied to clipboard!");
+      }
+    } catch (err) {
+      console.error("Sharing failed", err);
+    }
+  };
+
+  // render stars (preserve appearance)
+  const renderStars = (rating = 0) => {
+    const rounded = Math.round(rating || 0);
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <span key={star}>
-            {star <= rating ? (
+            {star <= rounded ? (
               <Star className="w-4 h-4 fill-[#CBE600] text-[#CBE600]" />
             ) : (
               <StarOff className="w-4 h-4 text-gray-300" />
@@ -117,17 +213,40 @@ const ProductDetailsPage = () => {
     );
   };
 
+  // UI loader while initial fetch
+  if (isLoading) {
+    return (
+      <Backdrop
+        open
+        sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          color: "#fff",
+        }}
+      >
+        <CircularProgress color="inherit" />
+        <span className="ml-3 text-white text-lg font-medium">Loading Product...</span>
+      </Backdrop>
+    );
+  }
+
+  // safe variables to avoid runtime crash
+  const displayImage = productImages[selectedImage] || productImages[0] || "";
+
   return (
     <div className="min-h-screen bg-[#FFFDF6]">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200 py-3 sm:py-4 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 overflow-x-auto">
-            <a href="/" className="hover:text-[#8A6F4F] transition-colors whitespace-nowrap">Home</a>
+            <a href="/" className="hover:text-[#8A6F4F] transition-colors whitespace-nowrap">
+              Home
+            </a>
             <span>/</span>
-            <a href="/products" className="hover:text-[#8A6F4F] transition-colors whitespace-nowrap">Products</a>
+            <a href="/products" className="hover:text-[#8A6F4F] transition-colors whitespace-nowrap">
+              Products
+            </a>
             <span>/</span>
-            <span className="text-[#8A6F4F] font-medium truncate">Glowfly Liquid Highlighter</span>
+            <span className="text-[#8A6F4F] font-medium truncate">{product?.name || "Product"}</span>
           </div>
         </div>
       </div>
@@ -139,38 +258,55 @@ const ProductDetailsPage = () => {
           <div className="space-y-3 sm:space-y-4">
             <div className="relative bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-xl aspect-square group">
               <img
-                src={product.images[selectedImage]}
-                alt={product.name}
+                src={displayImage}
+                alt={product?.name || "product"}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <button
-                onClick={() => setSelectedImage(selectedImage === 0 ? product.images.length - 1 : selectedImage - 1)}
+                onClick={() =>
+                  setSelectedImage((prev) =>
+                    prev === 0 ? Math.max(0, productImages.length - 1) : prev - 1
+                  )
+                }
                 className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-[#DFF200] transition-all duration-300 hover:scale-110"
+                aria-label="previous image"
               >
                 <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               <button
-                onClick={() => setSelectedImage(selectedImage === product.images.length - 1 ? 0 : selectedImage + 1)}
+                onClick={() =>
+                  setSelectedImage((prev) =>
+                    prev === productImages.length - 1 ? 0 : Math.min(productImages.length - 1, prev + 1)
+                  )
+                }
                 className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-[#DFF200] transition-all duration-300 hover:scale-110"
+                aria-label="next image"
               >
                 <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
-              
-              {/* Discount Badge */}
-              <div className="absolute top-3 sm:top-6 left-3 sm:left-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg">
-                33% OFF
-              </div>
+
+              {/* Discount Badge (if you have discount data show it) */}
+              {typeof product.discountPercent === "number" ? (
+                <div className="absolute top-3 sm:top-6 left-3 sm:left-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg">
+                  {product.discountPercent}% OFF
+                </div>
+              ) : (
+                <div className="absolute top-3 sm:top-6 left-3 sm:left-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500 text-white font-bold text-xs sm:text-sm rounded-full shadow-lg">
+                  33% OFF
+                </div>
+              )}
             </div>
 
             {/* Thumbnail Gallery */}
             <div className="grid grid-cols-4 gap-2 sm:gap-4">
-              {product.images.map((img, idx) => (
+              {productImages.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(idx)}
                   className={`relative bg-white rounded-lg overflow-hidden aspect-square border-2 transition-all duration-300 ${
-                    selectedImage === idx ? 'border-[#CBE600] shadow-lg scale-105' : 'border-gray-200 hover:border-[#DFF200]'
+                    selectedImage === idx ? "border-[#CBE600] shadow-lg scale-105" : "border-gray-200 hover:border-[#DFF200]"
                   }`}
+                  aria-label={`thumbnail-${idx}`}
                 >
                   <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
                 </button>
@@ -182,70 +318,80 @@ const ProductDetailsPage = () => {
           <div className="space-y-3 md:space-y-4 xl:space-y-6">
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-semibold text-[#222426] mb-2 sm:mb-3">
-                {product.name}
+                {product?.name}
               </h1>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
                 <div className="flex items-center gap-2">
-                  {renderStars(product.rating)}
-                  <span className="text-xs sm:text-sm text-gray-600">({product.reviews} reviews)</span>
+                  {renderStars(product?.rating)}
+                  <span className="text-xs sm:text-sm text-gray-600">({product?.reviews || 0} reviews)</span>
                 </div>
-                <span className="text-xs sm:text-sm text-[#CBE600] font-semibold">{product.availability}</span>
+                <span className="text-xs sm:text-sm text-[#CBE600] font-semibold">{product?.availability || "In Stock"}</span>
               </div>
-              <p className="text-xs sm:text-sm text-gray-500">SKU: {product.sku}</p>
+              <p className="text-xs sm:text-sm text-gray-500">SKU: {product?.sku || "-"}</p>
             </div>
 
             {/* Price */}
             <div className="flex flex-wrap items-baseline gap-2 sm:gap-4 pb-4 sm:pb-6 border-b border-gray-200">
-              <span className="text-3xl sm:text-4xl font-bold text-[#8A6F4F]">Rs. {product.price}</span>
-              <span className="text-xl sm:text-2xl text-gray-400 line-through">Rs. {product.originalPrice}</span>
-              <span className="px-2 sm:px-3 py-1 bg-red-100 text-red-600 text-xs sm:text-sm font-semibold rounded-full">
-                Save Rs. {product.originalPrice - product.price}
-              </span>
+              <span className="text-3xl sm:text-4xl font-bold text-[#8A6F4F]">Rs. {product?.price ?? "-"}</span>
+              {product?.originalPrice && (
+                <>
+                  <span className="text-xl sm:text-2xl text-gray-400 line-through">Rs. {product.originalPrice}</span>
+                  <span className="px-2 sm:px-3 py-1 bg-red-100 text-red-600 text-xs sm:text-sm font-semibold rounded-full">
+                    Save Rs. {product.originalPrice - (product.price || 0)}
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Color Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-[#222426] mb-2 sm:mb-3">
-                Color: <span className="text-[#8A6F4F]">{selectedColor}</span>
-              </label>
-              <div className="flex flex-wrap gap-2 sm:gap-3">
-                {product.colors.map((color) => (
-                  <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color.name)}
-                    className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-all duration-300 hover:scale-110 ${
-                      selectedColor === color.name ? 'border-[#CBE600] shadow-lg scale-110' : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
-                  >
-                    {selectedColor === color.name && (
-                      <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white absolute inset-0 m-auto drop-shadow-lg" />
-                    )}
-                  </button>
-                ))}
+            {Array.isArray(product?.colors) && product.colors.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-[#222426] mb-2 sm:mb-3">
+                  Color: <span className="text-[#8A6F4F]">{selectedColor || product.colors[0].name}</span>
+                </label>
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  {product.colors.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => setSelectedColor(color.name)}
+                      className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-all duration-300 hover:scale-110 ${
+                        selectedColor === color.name ? "border-[#CBE600] shadow-lg scale-110" : "border-gray-300"
+                      }`}
+                      style={{ backgroundColor: color.hex || "#fff" }}
+                      title={color.name}
+                    >
+                      {selectedColor === color.name && (
+                        <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white absolute inset-0 m-auto drop-shadow-lg" />
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-[#222426] mb-2 sm:mb-3">Size</label>
-              <div className="flex flex-wrap gap-2 sm:gap-3">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`w-14 h-10 sm:w-16 sm:h-12 rounded-lg border-2 font-semibold transition-all duration-300 ${
-                      selectedSize === size
-                        ? 'border-[#CBE600] bg-[#CBE600] text-white shadow-lg'
-                        : 'border-gray-300 bg-white text-gray-700 hover:border-[#DFF200]'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+            {Array.isArray(product?.sizes) && product.sizes.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-[#222426] mb-2 sm:mb-3">Size</label>
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => {
+                        setSelectedSize(size);
+                        setSizeError(false);
+                      }}
+                      className={`w-14 h-10 sm:w-16 sm:h-12 rounded-lg border-2 font-semibold transition-all duration-300 ${
+                        selectedSize === size ? "border-[#CBE600] bg-[#CBE600] text-white shadow-lg" : "border-gray-300 bg-white text-gray-700 hover:border-[#DFF200]"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+                {sizeError && <p className="text-sm text-red-500 mt-2">Please select a size.</p>}
               </div>
-            </div>
+            )}
 
             {/* Quantity */}
             <div>
@@ -266,33 +412,46 @@ const ProductDetailsPage = () => {
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-                <span className="text-xs sm:text-sm text-gray-600">Only 12 items left in stock!</span>
+                <span className="text-xs sm:text-sm text-gray-600">Only {product?.stock ?? 12} items left in stock!</span>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
-              <button className="flex-1 py-3 sm:py-4 px-4 sm:px-6 bg-[#CBE600] text-white font-bold text-base sm:text-lg rounded-xl hover:bg-[#DFF200] hover:text-black transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:shadow-2xl hover:-translate-y-1 uppercase tracking-wide">
+              <button
+                onClick={handleSubmit}
+                disabled={isAdding}
+                className="flex-1 py-3 sm:py-4 px-4 sm:px-6 bg-[#CBE600] text-white font-bold text-base sm:text-lg rounded-xl hover:bg-[#DFF200] hover:text-black transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:shadow-2xl hover:-translate-y-1 uppercase tracking-wide"
+              >
                 <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
-                Add to Cart
+                {isAdding ? "Adding..." : "Add to Cart"}
               </button>
+
               <div className="flex gap-3 sm:gap-4">
                 <button
-                  onClick={() => setIsFavorite(!isFavorite)}
+                  onClick={() => setIsFavorite((v) => !v)}
                   className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl border-2 flex items-center justify-center transition-all duration-300 hover:scale-110 ${
-                    isFavorite ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
+                    isFavorite ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
                   }`}
                 >
-                  <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                  <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
                 </button>
-                <button className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl border-2 border-gray-300 bg-white flex items-center justify-center hover:border-[#CBE600] hover:bg-[#CBE600]/10 transition-all duration-300 hover:scale-110">
+
+                <button
+                  onClick={handleShare}
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl border-2 border-gray-300 bg-white flex items-center justify-center hover:border-[#CBE600] hover:bg-[#CBE600]/10 transition-all duration-300 hover:scale-110"
+                  aria-label="share"
+                >
                   <Share2 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
                 </button>
               </div>
             </div>
 
             {/* Buy Now Button */}
-            <button className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-black text-white font-bold text-base sm:text-lg rounded-xl hover:bg-[#8A6F4F] transition-all duration-300 shadow-lg uppercase tracking-wide">
+            <button
+              onClick={() => navigate(`/checkout?productId=${productId}&size=${encodeURIComponent(selectedSize || "")}&qty=${quantity}`)}
+              className="w-full py-3 sm:py-4 px-4 sm:px-6 bg-black text-white font-bold text-base sm:text-lg rounded-xl hover:bg-[#8A6F4F] transition-all duration-300 shadow-lg uppercase tracking-wide"
+            >
               Buy Now
             </button>
 
@@ -327,62 +486,64 @@ const ProductDetailsPage = () => {
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-8 sm:mb-12 lg:mb-16">
           <div className="border-b border-gray-200 mb-6 sm:mb-8">
             <div className="flex gap-4 sm:gap-8 overflow-x-auto">
-              {['description', 'ingredients', 'how-to-use', 'reviews'].map((tab) => (
+              {["description", "ingredients", "how-to-use", "reviews"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`pb-3 sm:pb-4 px-1 sm:px-2 font-semibold capitalize transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${
-                    activeTab === tab
-                      ? 'text-[#8A6F4F] border-b-2 border-[#CBE600]'
-                      : 'text-gray-500 hover:text-[#8A6F4F]'
+                    activeTab === tab ? "text-[#8A6F4F] border-b-2 border-[#CBE600]" : "text-gray-500 hover:text-[#8A6F4F]"
                   }`}
                 >
-                  {tab.replace('-', ' ')}
+                  {tab.replace("-", " ")}
                 </button>
               ))}
             </div>
           </div>
 
-          {activeTab === 'description' && (
+          {activeTab === "description" && (
             <div className="space-y-4 sm:space-y-6">
-              <p className="text-gray-700 leading-relaxed text-sm md:text-base lg:text-lg">{product.description}</p>
-              <div>
-                <h3 className="text-lg sm:text-xl font-semibold text-[#222426] mb-3 sm:mb-4">Key Features:</h3>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                  {product.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2 sm:gap-3">
-                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#CBE600] flex-shrink-0 mt-0.5" />
-                      <span className="text-sm sm:text-base text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <p className="text-gray-700 leading-relaxed text-sm md:text-base lg:text-lg">{product?.description}</p>
+              {Array.isArray(product?.features) && (
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-[#222426] mb-3 sm:mb-4">Key Features:</h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    {product.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2 sm:gap-3">
+                        <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#CBE600] flex-shrink-0 mt-0.5" />
+                        <span className="text-sm sm:text-base text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
-          {activeTab === 'ingredients' && (
+          {activeTab === "ingredients" && (
             <div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#222426] mb-3 sm:mb-4">Ingredients:</h3>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{product.ingredients}</p>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{product?.ingredients}</p>
             </div>
           )}
 
-          {activeTab === 'how-to-use' && (
+          {activeTab === "how-to-use" && (
             <div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#222426] mb-3 sm:mb-4">How to Use:</h3>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{product.howToUse}</p>
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{product?.howToUse}</p>
             </div>
           )}
 
-          {activeTab === 'reviews' && (
+          {activeTab === "reviews" && (
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-4 sm:mb-6">
                 <div>
                   <div className="flex items-center gap-3 sm:gap-4 mb-2">
-                    <span className="text-3xl sm:text-4xl font-bold text-[#8A6F4F]">{product.rating}.0</span>
+                    <span className="text-3xl sm:text-4xl font-bold text-[#8A6F4F]">
+                      {(product?.rating || 0).toFixed(1)}
+                    </span>
                     <div>
-                      {renderStars(product.rating)}
-                      <p className="text-xs sm:text-sm text-gray-600 mt-1">Based on {product.reviews} reviews</p>
+                      {renderStars(product?.rating)}
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1">Based on {product?.reviews || 0} reviews</p>
                     </div>
                   </div>
                 </div>
@@ -392,25 +553,29 @@ const ProductDetailsPage = () => {
               </div>
 
               <div className="space-y-4 sm:space-y-6">
-                {reviews.map((review) => (
-                  <div key={review.id} className="border-b border-gray-200 pb-4 sm:pb-6 last:border-0">
+                {(showAll ? reviewsList : reviewsList.slice(0, 5)).map((r) => (
+                  <div key={r.id || r._id} className="border-b border-gray-200 pb-4 sm:pb-6 last:border-0">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-0 mb-2 sm:mb-3">
                       <div>
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                          <span className="font-semibold text-[#222426] text-sm sm:text-base">{review.author}</span>
-                          {review.verified && (
-                            <span className="px-2 py-1 bg-[#CBE600]/10 text-[#8A6F4F] text-xs font-semibold rounded">
-                              Verified Purchase
-                            </span>
+                          <span className="font-semibold text-[#222426] text-sm sm:text-base">{r.author || r.name || "User"}</span>
+                          {r.verified && (
+                            <span className="px-2 py-1 bg-[#CBE600]/10 text-[#8A6F4F] text-xs font-semibold rounded">Verified Purchase</span>
                           )}
                         </div>
-                        {renderStars(review.rating)}
+                        {renderStars(r.rating)}
                       </div>
-                      <span className="text-xs sm:text-sm text-gray-500">{new Date(review.date).toLocaleDateString()}</span>
+                      <span className="text-xs sm:text-sm text-gray-500">{new Date(r.date || r.createdAt || Date.now()).toLocaleDateString()}</span>
                     </div>
-                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{review.comment}</p>
+                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{r.comment || r.text}</p>
                   </div>
                 ))}
+
+                {reviewsList.length > 5 && (
+                  <button onClick={() => setShowAll((s) => !s)} className="text-sm text-[#8A6F4F] underline">
+                    {showAll ? "Show less" : `Show all ${reviewsList.length} reviews`}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -427,13 +592,9 @@ const ProductDetailsPage = () => {
 
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 xl:gap-6">
             {relatedProducts.map((item) => (
-              <article key={item.id} className="group bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-lg border-2 border-transparent hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+              <article key={item._id || item.id} className="group bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-lg border-2 border-transparent hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
                 <div className="relative overflow-hidden bg-gray-100 aspect-square">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+                  <img src={item.image || item.images?.[0]} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 </div>
                 <div className="p-3 sm:p-5">
                   <h3 className="text-sm sm:text-base font-semibold text-[#222426] mb-1.5 sm:mb-2 group-hover:text-[#CBE600] transition-colors duration-300 line-clamp-2">

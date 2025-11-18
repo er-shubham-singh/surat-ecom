@@ -37,9 +37,9 @@ const navigation = [
         title: "Top",
         subHeadings: [
           {
-            id: "crop_tops",
+            id: "ladies_tops",
             name: "Crop Tops",
-            path: "/women/topwear/tops",
+            path: "/women/topwear/ladies_tops",
           },
         ],
       },
