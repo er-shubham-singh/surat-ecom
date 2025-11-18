@@ -24,6 +24,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { findProducts, deleteProduct } from "../Redux/Customers/Product/Action";
 
+
 const ProductsTable = () => {
   const location = useLocation();
   const navigate = useNavigate();
