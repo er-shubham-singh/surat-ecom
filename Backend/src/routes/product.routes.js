@@ -6,8 +6,8 @@ import sizeChart from '../modal/sizechart.model.js'
 const router = express.Router()
 
 // Admin Route
-router.post('/product/createproduct',upload.array("images",4), productController.createProduct)
-router.delete("/product/:id",productController.deleteProduct)
+router.post('/admin/create-products',upload.array("images",4), productController.createProduct)
+router.delete("/products/:id",productController.deleteProduct)
 router.put("/product/:id",upload.fields({name:"images",maxCount:4}),productController.updateProduct)
 router.get("/:category", async(req,res)=>{
   try {
@@ -20,7 +20,7 @@ router.get("/:category", async(req,res)=>{
 })
 
 // User Route
-router.get("/allProduct",productController.getAllProduct)
+router.get("/admin/products/",productController.getAllProduct)
 router.get("/products/id/:id",productController.findProductById)
 
 // size chart

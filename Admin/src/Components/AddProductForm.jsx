@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { createProduct, updateProduct } from "../redux/product/action"; 
+import { createProduct, updateProduct } from "../Redux/Customers/Product/Action"; 
 
 import axios from 'axios'
 import categoryHierarchy from "../data/categoryHierarchi";
@@ -131,137 +131,157 @@ const AddProductForm = () => {
   // file input (default "Choose Files" styling) - updates selectedFiles but does not yet upload
 const handleFileChange = (e) => {
   const filesArr = Array.from(e.target.files || []);
-  // keep the raw File objects for upload
   const limited = filesArr.slice(0, 4);
-  setSelectedFiles(limited); // used for UI list
-  setImages(limited); // these must be File objects sent to backend
-
-  // create preview URLs (revoke old ones to avoid memory leak)
-  setPreviewImages((prev) => {
-    // revoke previous
+  // ensure all items are File instances
+  console.log("Picked files:", limited.map(f => ({ name: f.name, isFile: f instanceof File })));
+  setSelectedFiles(limited);
+  setImages(limited);
+  setPreviewImages(prev => {
     prev.forEach(src => { try { URL.revokeObjectURL(src); } catch(e){} });
     return limited.map((f) => URL.createObjectURL(f));
   });
 };
 
 
-  // Build FormData and dispatch create or update
-// Build FormData and dispatch create or update
 const handleSubmit = async (e) => {
   e.preventDefault();
-
   try {
-    // ensure images state contains File objects (fallback to selectedFiles)
-    const filesToSend = (Array.isArray(images) && images.length > 0) ? images : (Array.isArray(selectedFiles) ? selectedFiles : []);
+    // --- prepare files ---
+    const filesToSend = (Array.isArray(images) && images.length > 0)
+      ? images
+      : (Array.isArray(selectedFiles) ? selectedFiles : []);
 
-    // Basic validation
-    if (!filesToSend || filesToSend.length === 0) {
+    // validation: require images for create
+    if ((!filesToSend || filesToSend.length === 0) && (!isEditing || (isEditing && (!previewImages || previewImages.length === 0)))) {
       console.error("No files to upload");
       setSuccess(false);
       setSuccessMessage("Please choose at least one image.");
       return;
     }
 
+    // --- build FormData ---
     const payload = new FormData();
 
-    // Append simple fields (always as strings)
     const keysToAppend = [
-      "brand",
-      "title",
-      "color",
-      "price",
-      "discountedPrice",
-      "discountPercentage",
-      "quantity",
-      "description",
-      "topLevelCategory",
-      "secondLevelCategory",
-      "thirdLevelCategory",
-      "freeSize",
+      "brand", "title", "color", "price", "discountedPrice", "discountPercentage",
+      "quantity", "description", "topLevelCategory", "secondLevelCategory",
+      "thirdLevelCategory", "freeSize"
     ];
-
-    keysToAppend.forEach((k) => {
-      // convert undefined/null -> empty string
+    keysToAppend.forEach(k => {
       const val = formData[k] !== undefined && formData[k] !== null ? formData[k] : "";
       payload.append(k, String(val));
     });
 
-    // If color can be an array, send as JSON string to be robust on backend
-    if (Array.isArray(formData.color)) {
-      payload.set("color", JSON.stringify(formData.color));
-    } else {
-      // keep as-is (string)
-      // If it's a comma separated string you can still parse on backend
-      payload.set("color", formData.color ?? "");
-    }
+    payload.set("size", JSON.stringify(formData.size || [])); // sizes as JSON string
 
-    // Append sizes as JSON string (backend expects JSON string)
-    payload.set("size", JSON.stringify(formData.size || []));
-
-    // Append each File under the SAME field name that multer expects: "images"
-    // Keep order and limit to 4
-    filesToSend.slice(0, 4).forEach((file) => {
-      payload.append("images", file);
-    });
-
-    // If editing, attach product id
-    if (isEditing && formData._id) {
-      payload.append("productId", formData._id);
-    }
-
-    // Dispatch the action. Most thunk/RTK actions return a promise — await it.
-    // If your action creator expects raw FormData, this works. If it expects an object,
-    // adapt the action to accept FormData or send with fetch/axios here.
-    for (const pair of payload.entries()) {
-  if (pair[1] instanceof File) console.log("FormData file:", pair[0], pair[1].name, pair[1].size);
-  else console.log("FormData field:", pair[0], pair[1]);
-}
-
-    const result = await dispatch(isEditing ? updateProduct(payload) : createProduct(payload));
-
-    // If your action returns a rejected promise it will throw and be caught below.
-    // If it returns a success payload, handle it (optional)
-    console.log("submit result:", result);
-
-    // Show success and reset form
-    setSuccess(true);
-    setSuccessMessage(isEditing ? "Product updated successfully" : "Product created successfully");
-
-    if (!isEditing) {
-      setFormData({
-        _id: null,
-        images: "",
-        brand: "",
-        title: "",
-        color: "",
-        price: "",
-        discountedPrice: "",
-        discountPercentage: "",
-        topLevelCategory: "",
-        secondLevelCategory: "",
-        thirdLevelCategory: "",
-        description: "",
-        quantity: "",
-        size: [],
-        freeSize: "",
+    // append files or existing urls
+    if (filesToSend && filesToSend.length > 0) {
+      filesToSend.slice(0, 4).forEach((file, idx) => {
+        // ensure file is a File instance; fallback: skip if not
+        if (file instanceof File || file instanceof Blob) {
+          payload.append("images", file, file.name || `image-${idx}.jpg`);
+        } else {
+          console.warn("Skipping non-File entry while appending:", file);
+        }
       });
-      setImages([]);
-      setSelectedFiles([]);
-      setPreviewImages([]);
-      setSizeChart(null);
+    } else {
+      // editing and no new files -> send existing image URLs for backend to keep
+      payload.append("existingImageUrls", JSON.stringify(previewImages || []));
     }
 
-    // optional: navigate after create/update
-    // navigate("/admin/products");
+    if (isEditing && formData._id) payload.append("productId", formData._id);
+
+    // --- debug print FormData contents (file names & fields) ---
+    console.log("=== FormData entries (begin) ===");
+    for (const pair of payload.entries()) {
+      if (pair[1] instanceof File || (typeof File !== "undefined" && pair[1] instanceof File)) {
+        console.log("FormData file:", pair[0], pair[1].name, pair[1].size);
+      } else {
+        // For long strings (existingImageUrls) shorten log
+        const v = typeof pair[1] === "string" && pair[1].length > 200 ? pair[1].slice(0,200) + "..." : pair[1];
+        console.log("FormData field:", pair[0], v);
+      }
+    }
+    console.log("=== FormData entries (end) ===");
+
+    // --- try dispatching thunk first (preferred) ---
+    try {
+      // dispatch should accept FormData and return created product or throw on error
+      const actionResult = await dispatch(isEditing ? updateProduct(payload) : createProduct(payload));
+      console.log("Dispatch result:", actionResult);
+
+      // if dispatch returned a falsy result or a plain action object without uploaded data, throw to fallback
+      if (!actionResult || (actionResult && typeof actionResult === "object" && !actionResult?.id && !actionResult?._id && !actionResult?.imageUrl)) {
+        // not necessarily an error, but signal fallback to direct upload for debugging
+        console.warn("Dispatch did not return expected product object — falling back to direct upload for debugging.");
+        throw new Error("dispatch-no-product");
+      }
+
+      // success via dispatch
+      setSuccess(true);
+      setSuccessMessage(isEditing ? "Product updated successfully (via dispatch)" : "Product created successfully (via dispatch)");
+      if (!isEditing) {
+        // reset form
+        setFormData({
+          _id: null, images: "", brand: "", title: "", color: "", price: "", discountedPrice: "",
+          discountPercentage: "", topLevelCategory: "", secondLevelCategory: "",
+          thirdLevelCategory: "", description: "", quantity: "", size: [], freeSize: "",
+        });
+        setImages([]);
+        setSelectedFiles([]);
+        setPreviewImages([]);
+        setSizeChart(null);
+      }
+      return;
+    } catch (dispatchErr) {
+      console.warn("Dispatch failed or returned unexpected result:", dispatchErr);
+      // fall through to direct upload fallback
+    }
+
+    // --- FALLBACK: direct axios upload (bypass Redux) to identify whether Redux is the issue ---
+    try {
+      const API_BASE_URL = import.meta.env.VITE_React_BASE_API_URL || "http://localhost:5454";
+      // choose endpoint names that match your backend
+      const endpoint = isEditing ? `${API_BASE_URL}/api/admin/products/update` : `${API_BASE_URL}/api/admin/products/create`;
+
+      const headers = {
+        // do NOT add 'Content-Type' manually; axios will handle multipart boundary
+        ...(localStorage.getItem("jwt") ? { Authorization: `Bearer ${localStorage.getItem("jwt")}` } : {}),
+      };
+
+      const axiosResp = await axios.post(endpoint, payload, { headers });
+      console.log("Direct axios upload response:", axiosResp?.data);
+
+      setSuccess(true);
+      setSuccessMessage(isEditing ? "Product updated successfully (via axios fallback)" : "Product created successfully (via axios fallback)");
+
+      if (!isEditing) {
+        setFormData({
+          _id: null, images: "", brand: "", title: "", color: "", price: "", discountedPrice: "",
+          discountPercentage: "", topLevelCategory: "", secondLevelCategory: "",
+          thirdLevelCategory: "", description: "", quantity: "", size: [], freeSize: "",
+        });
+        setImages([]);
+        setSelectedFiles([]);
+        setPreviewImages([]);
+        setSizeChart(null);
+      }
+
+    } catch (axiosErr) {
+      console.error("Direct upload (axios) failed:", axiosErr, axiosErr?.response?.data || axiosErr?.message);
+      setSuccess(false);
+      setSuccessMessage(axiosErr?.response?.data?.message || axiosErr?.message || "Upload failed. Check console & network tab.");
+    }
+
   } catch (err) {
-    // If your action uses rejectWithValue or throws, you'll catch here
-    console.error("submit error:", err);
+    console.error("handleSubmit top-level error:", err);
     setSuccess(false);
-    // if err.response exists (axios) prefer that, otherwise generic message
-    const message = err?.message || "Action failed. Check console for details.";
-    setSuccessMessage(message);
+    setSuccessMessage(err?.message || "Unexpected error. Check console.");
   }
 };
+
+
+// ... (rest of the component)
 
 
   // When thirdLevelCategory changes, fetch size chart (only when not editing or when explicitly changed)
@@ -276,7 +296,7 @@ useEffect(() => {
   (async () => {
     try {
       const base = (typeof API_BASE_URL !== "undefined" && API_BASE_URL) || import.meta.env.VITE_React_BASE_API_URL || "";
-      const url = `${base}api/admin/${encodeURIComponent(third)}`;
+      const url = `${base}/api/admin/products/${encodeURIComponent(third)}`;
       console.log("Fetching size chart from:", url);
 
       const res = await fetch(url, { method: "GET" });

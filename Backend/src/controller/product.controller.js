@@ -48,16 +48,22 @@ export const findProductById = async (req, res) => {
   }
 };
 
+// controller/product.controller.js (replace current getAllProduct or add logging)
 export const getAllProduct = async (req, res) => {
+  console.log('-> /api/products called with query:', req.query);
   try {
-    // forward query so the service can paginate/filter
     const result = await productServices.getAllProducts(req.query);
     return res.status(200).json(result);
   } catch (err) {
-    console.error('getAllProduct controller error:', err);
-    return res.status(500).json({ error: err.message || 'Failed to fetch products' });
+    // print full stack + request query — this will appear in server console
+    console.error('getAllProduct controller error stack:', err.stack || err);
+    console.error('REQ QUERY (for debugging):', req.query);
+    // send more helpful message to client (while still returning 500)
+    return res.status(500).json({ message: 'Server error', details: err.message });
   }
 };
+
+
 
 export const createMultipleProduct = async (req, res) => {
   try {

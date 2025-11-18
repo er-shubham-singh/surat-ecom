@@ -192,7 +192,8 @@ export async function findProductById(id) {
   return product;
 }
 
-export async function getAllProducts(reqQuery = {}) {
+// service: product.services.js
+export async function getAllProducts(reqQuery) {
   let {
     category,
     color,
@@ -205,84 +206,67 @@ export async function getAllProducts(reqQuery = {}) {
     pageNumber,
     pageSize,
   } = reqQuery;
+  (pageSize = pageSize || 10), (pageNumber = pageNumber || 1);
+  let query = Product.find().populate("category");
 
-  pageSize = Number(pageSize) || 10;
-  pageNumber = Number(pageNumber) || 1;
 
-  // base query
-  const mongooseQuery = {};
-  const andFilters = [];
-
-  // category + children
   if (category) {
-    const existCategory = await Category.findOne({ name: category.trim() });
-    if (!existCategory) {
-      return { content: [], currentPage: 1, totalPages: 1 };
-    }
-
-    const allCategoryIds = new Set([existCategory._id.toString()]);
-
-    async function getChildrenRecursive(parentIds) {
-      const children = await Category.find({ parentCategory: { $in: parentIds } }).select('_id').lean();
-      if (!children || children.length === 0) return;
-      const childIds = children.map(c => c._id);
-      childIds.forEach(id => allCategoryIds.add(id.toString()));
-      await getChildrenRecursive(childIds);
-    }
-
-    await getChildrenRecursive([existCategory._id]);
-
-    andFilters.push({ category: { $in: Array.from(allCategoryIds) } });
+    const existCategory = await Category.findOne({ name: category });
+    if (existCategory)
+      query = query.where("category").equals(existCategory._id);
+    else return { content: [], currentPage: 1, totalPages:1 };
   }
 
   if (color) {
-    const colorSet = new Set(String(color).split(',').map(c => c.trim().toLowerCase()).filter(Boolean));
-    if (colorSet.size > 0) {
-      andFilters.push({ color: { $in: Array.from(colorSet) } });
-    }
+    const colorSet = new Set(color.split(",").map(color => color.trim().toLowerCase()));
+    const colorRegex = colorSet.size > 0 ? new RegExp([...colorSet].join("|"), "i") : null;
+    query = query.where("color").regex(colorRegex);
+    // query = query.where("color").in([...colorSet]);
   }
 
   if (sizes) {
-    const sizesSet = Array.isArray(sizes) ? sizes : String(sizes).split(',').map(s => s.trim());
-    andFilters.push({ 'sizes.name': { $in: sizesSet } });
+    const sizesSet = new Set(sizes);
+    
+    query = query.where("sizes.name").in([...sizesSet]);
   }
 
-  if (minPrice !== undefined && maxPrice !== undefined) {
-    andFilters.push({ discountedPrice: { $gte: Number(minPrice), $lte: Number(maxPrice) } });
-  } else if (minPrice !== undefined) {
-    andFilters.push({ discountedPrice: { $gte: Number(minPrice) } });
-  } else if (maxPrice !== undefined) {
-    andFilters.push({ discountedPrice: { $lte: Number(maxPrice) } });
+  if (minPrice && maxPrice) {
+    query = query.where("discountedPrice").gte(minPrice).lte(maxPrice);
   }
 
-  if (minDiscount !== undefined) {
-    andFilters.push({ discountPercent: { $gt: Number(minDiscount) } });
+  if (minDiscount) {
+    query = query.where("discountPersent").gt(minDiscount);
   }
 
   if (stock) {
-    if (stock === 'in_stock') andFilters.push({ quantity: { $gt: 0 } });
-    else if (stock === 'out_of_stock') andFilters.push({ quantity: { $lte: 0 } });
+    if (stock === "in_stock") {
+      query = query.where("quantity").gt(0);
+    } else if (stock === "out_of_stock") {
+      query = query.where("quantity").lte(0);
+    }
   }
 
-  if (andFilters.length > 0) mongooseQuery.$and = andFilters;
-
-  // build mongoose query
-  let query = Product.find(mongooseQuery).populate('category');
-
-  // sort
   if (sort) {
-    const sortDirection = sort === 'price_high' ? -1 : 1;
+    const sortDirection = sort === "price_high" ? -1 : 1;
     query = query.sort({ discountedPrice: sortDirection });
   }
 
-  const totalProducts = await Product.countDocuments(mongooseQuery);
-  const totalPages = Math.ceil(totalProducts / pageSize) || 1;
+  // Apply pagination
+  const totalProducts = await Product.countDocuments(query);
+
   const skip = (pageNumber - 1) * pageSize;
 
-  const products = await query.skip(skip).limit(Number(pageSize)).exec();
+  query = query.skip(skip).limit(pageSize);
 
-  return { content: products, currentPage: Number(pageNumber), totalPages };
+  const products = await query.exec();
+
+  const totalPages = Math.ceil(totalProducts / pageSize);
+
+
+  return { content: products, currentPage: pageNumber, totalPages:totalPages };
 }
+
+
 
 export async function createMultipleProduct(products = []) {
   for (const p of products) {
