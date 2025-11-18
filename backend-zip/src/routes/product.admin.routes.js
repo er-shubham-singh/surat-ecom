@@ -15,7 +15,7 @@ router.get("/:category", async (req, res) => {
     if (!chart) return res.status(404).json({ message: "No size chart found" });
     res.json(chart);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error" ,err});
   }
 });
 
