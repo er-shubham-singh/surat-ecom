@@ -18,7 +18,7 @@ import {
   SEARCH_PRODUCTS_REQUEST,
   SEARCH_PRODUCTS_SUCCESS,
   SEARCH_PRODUCTS_FAILURE,
-} from "./ActionType";
+} from "./actionType";
 
 const initialState = {
   // products will store the API shape { content: [], currentPage, totalPages }
