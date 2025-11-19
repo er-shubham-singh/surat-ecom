@@ -470,6 +470,7 @@ const ProductPage = () => {
               {filteredProducts.map((product) => (
                 <article
                   key={product._id || product.id}
+                  onClick={()=> navigate(`/product/${product?._id}`)}
                   className="group bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-lg border-2 border-transparent hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl sm:hover:-translate-y-2 flex flex-col h-full"
                 >
                   <div className="relative overflow-hidden bg-gray-100 aspect-square">

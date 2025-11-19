@@ -14,7 +14,7 @@ const authRouter=require("./routes/auth.routes.js")
 app.use("/auth",authRouter)
 
 const userRouter=require("./routes/user.routes.js");
-app.use("/api/users",userRouter)
+app.use("/api",userRouter)
 
 const productRouter=require("./routes/product.routes.js");
 app.use("/api/products",productRouter);

@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
         required:true,
         default:"CUSTOMER"
     },
-    mpbile:{
+    mobile:{
         type:String
     },
     addresses:[{

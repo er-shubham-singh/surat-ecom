@@ -1,327 +1,284 @@
-import React, { useState, useEffect } from "react";
-import { FaEyeSlash, FaEye } from "react-icons/fa";
-import { useDispatch, useSelector } from "react-redux";
 import {
-  sendVerifyOtp,
-  confirmVerifyOtp,
-  registerUser,
-} from "../../redux/Auth/action";
+  Grid,
+  TextField,
+  Button,
+  Snackbar,
+  Alert,
+  CircularProgress,
+  Box,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { register } from "../../redux/Auth/Action";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import React from 'react'
 
-function Register({ onClose, switchToLogin }) {
+export default function RegisterUserForm() {
+    const baseUrl = import.meta.env.VITE_React_BASE_API_URL;
+
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, success, isVerified } = useSelector(
-    (state) => state.auth
-  );
+  const { auth } = useSelector((store) => store);
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpInputs, setOtpInputs] = useState(["", "", "", "", ""]);
   const [formData, setFormData] = useState({
     firstName: "",
-    lastName:"",
-    email: "",
+    lastName: "",
     password: "",
   });
-  const [showOtp, setShowOtp] = useState(false);
-  const [emailLocked, setEmailLocked] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
 
-  // if external isVerified changed (from reducer), open username/password
-  useEffect(() => {
-    if (isVerified) {
-      setShowOtp(false);
-      setEmailLocked(true);
-    }
-  }, [isVerified]);
+  const [snackBarMessage, setSnackBarMessage] = useState("");
+  const [snackBarOpen, setSnackBarOpen] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [registerLoading, setRegisterLoading] = useState(false);
 
-  // -----------------
-  // Send OTP
-  // -----------------
-  const handleSendOtp = async () => {
-    if (!formData.email) return alert("Please enter your email first.");
-    try {
-      const res = await dispatch(sendVerifyOtp(formData.email));
-      if (res?.success) {
-        setShowOtp(true);
-        setEmailLocked(true);
-        setOtpSent(true);
-        startResendTimer();
-      } else {
-        alert(res?.error || "Unable to send OTP");
-      }
-    } catch (err) {
-      alert(err.message || "Something went wrong");
-    }
+
+
+  const handleSnackbar = (msg) => {
+    setSnackBarMessage(msg);
+    setSnackBarOpen(true);
   };
+  const handleCloseSnackbar = () => setSnackBarOpen(false);
 
-  // -----------------
-  // Resend OTP (with timer)
-  // -----------------
-  const startResendTimer = () => {
-    setResendTimer(30); // 30 seconds
-    const interval = setInterval(() => {
-      setResendTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
+const handleSendOtp = async () => {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.startsWith("a@")) {
+    return handleSnackbar("Please enter a valid and acceptable email.");
+  }
 
-  const handleResendOtp = async () => {
-    try {
-      const res = await dispatch(sendVerifyOtp(formData.email));
-      if (res?.success) startResendTimer();
-      else alert(res?.error || "Could not resend OTP");
-    } catch (err) {
-      alert(err.message || "Something went wrong");
+  try {
+    setOtpLoading(true);
+const res = await axios.post(`${baseUrl}/auth/send-otp`, { email });
+    // console.log("res data....", res);
+    handleSnackbar(res.data.message || "OTP sent successfully!");
+    setOtpSent(true);
+  } catch (err) {
+    // console.error("❌ OTP Send Error:", err?.response || err); // <-- Log full error
+    const errorMsg = err.response?.data?.error || err.response?.data?.message || "Failed to send OTP.";
+
+    // Show special message if user already exists
+    if (errorMsg.toLowerCase().includes("user already exists")) {
+      handleSnackbar("User already registered. Please login.");
+    } else {
+      handleSnackbar(errorMsg);
     }
-  };
+  } finally {
+    setOtpLoading(false);
+  }
+};
 
-  // -----------------
-  // Verify OTP
-  // -----------------
-  const handleVerifyOtp = async () => {
-    if (!otp) return alert("Enter OTP first.");
-    try {
-      const res = await dispatch(confirmVerifyOtp(formData.email, otp));
-      if (res?.success) {
-        // reducer's isVerified will flip; keep local UI in sync via useEffect
-        setOtp("");
-        setShowOtp(false);
-      } else {
-        alert(res?.error || "Invalid OTP");
-      }
-    } catch (err) {
-      alert(err.message || "Something went wrong");
-    }
-  };
 
-  // -----------------
-  // Signup
-  // -----------------
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    if (!isVerified) {
-      alert("Please verify your email first.");
-      return;
-    }
-    try {
-      const res = await dispatch(registerUser(formData));
-      if (res?.success) {
-        switchToLogin();
-      } else {
-        alert(res?.error || "Registration failed");
-      }
-    } catch (err) {
-      alert(err.message || "Something went wrong");
-    }
-  };
+const handleVerifyOtp = async () => {
+  const enteredOtp = otpInputs.join("");
+  if (enteredOtp.length !== 5) {
+    return handleSnackbar("Please enter a valid 5-digit OTP.");
+  }
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+  try {
+    setVerifyingOtp(true);
+    const res = await axios.post(`${baseUrl}/auth/verify-otp`, {
+      email,
+      otp: enteredOtp,
     });
+
+
+    if (res.data.success === true) {
+      // console.log("✅ Setting Email Verified to true");
+      setEmailVerified(true); // 👈 This should now work
+      handleSnackbar("Email verified successfully!");
+    } else {
+      handleSnackbar(res.data.message || "OTP verification failed.");
+    }
+  } catch (err) {
+    handleSnackbar(err.response?.data?.message || "OTP verification failed.");
+  } finally {
+    setVerifyingOtp(false);
+  }
+};
+
+  useEffect(() => {
+  // console.log("Email verification status updated:", emailVerified);
+}, [emailVerified]);
+
+
+  const handleOtpChange = (index, value) => {
+    if (/^\d?$/.test(value)) {
+      const newOtp = [...otpInputs];
+      newOtp[index] = value;
+      setOtpInputs(newOtp);
+
+      if (value && index < 4) {
+        const nextInput = document.getElementById(`otp-${index + 1}`);
+        if (nextInput) nextInput.focus();
+      }
+    }
   };
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault();
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+  if (!passwordRegex.test(formData.password)) {
+    setPasswordError(
+      "Password must be at least 8 characters, include uppercase, lowercase, number & special character."
+    );
+    return;
+  } else {
+    setPasswordError("");
+  }
+
+  try {
+    setRegisterLoading(true);
+    await dispatch(register({ ...formData, email }));
+  } finally {
+    setRegisterLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    if (auth.user) handleSnackbar("Register Success");
+    if (auth.error) handleSnackbar(auth.error);
+  }, [auth.user, auth.error]);
 
   return (
-    <div className="w-full max-w-md mx-auto text-center">
-      <h2 className="text-gray-800 text-2xl sm:text-3xl font-bold mb-6">
-        Create Account
-      </h2>
-
-      {/* Error & Success Messages */}
-      {error && (
-        <div className="bg-red-100 text-red-600 p-2 rounded-md mb-3 text-center text-sm">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-100 text-green-600 p-2 rounded-md mb-3 text-center text-sm">
-          {success}
-        </div>
-      )}
-
-      <form className="flex flex-col space-y-4" onSubmit={handleSignup}>
-        {/* Email + Send OTP */}
-        <div>
-          <label
-            htmlFor="email"
-            className="text-gray-700 font-medium block mb-1 text-left"
-          >
-            Email
-          </label>
-          <div className="flex space-x-2">
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter email"
-              value={formData.email}
-              name="email"
-              onChange={handleChange}
-              disabled={emailLocked}
-              className={`flex-1 p-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm ${
-                emailLocked ? "bg-gray-100 cursor-not-allowed" : ""
-              }`}
+    <Box>
+      <form onSubmit={handleFormSubmit}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Email"
+              value={email}
+              onChange={(e) => !emailVerified && setEmail(e.target.value)}
+              disabled={emailVerified}
+              required
+              fullWidth
             />
-            {!otpSent ? (
-              <button
-                type="button"
+          </Grid>
+
+          {!otpSent && !emailVerified && (
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                fullWidth
                 onClick={handleSendOtp}
-                disabled={loading}
-                className={`px-4 rounded-lg font-medium text-sm transition ${
-                  loading
-                    ? "bg-gray-400 text-white cursor-not-allowed"
-                    : "bg-indigo-600 text-white hover:bg-indigo-700"
-                }`}
+                disabled={otpLoading}
               >
-                {loading ? "Sending..." : "Send OTP"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={resendTimer > 0 || loading}
-                className={`px-4 rounded-lg font-medium text-sm transition ${
-                  resendTimer > 0
-                    ? "bg-gray-400 text-white cursor-not-allowed"
-                    : "bg-indigo-600 text-white hover:bg-indigo-700"
-                }`}
-              >
-                {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
-              </button>
-            )}
-          </div>
-        </div>
+                {otpLoading ? <CircularProgress size={24} /> : "Send OTP"}
+              </Button>
+            </Grid>
+          )}
 
-        {/* OTP Section */}
-        {showOtp && (
-          <div>
-            <label
-              htmlFor="otp"
-              className="text-gray-700 font-medium block mb-1 text-left"
-            >
-              Enter OTP
-            </label>
-            <div className="flex space-x-2">
-              <input
-                id="otp"
-                type="text"
-                placeholder="Enter OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="flex-1 p-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm"
-              />
-              <button
-                type="button"
-                onClick={handleVerifyOtp}
-                disabled={loading}
-                className={`px-4 rounded-lg font-medium text-sm transition ${
-                  loading
-                    ? "bg-gray-400 text-white cursor-not-allowed"
-                    : "bg-green-600 text-white hover:bg-green-700"
-                }`}
-              >
-                {loading ? "Verifying..." : "Verify"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Username + Password (only after OTP verified) */}
-        {isVerified && (
-          <>
-            <div>
-              <label
-                htmlFor="username"
-                className="text-gray-700 font-medium block mb-1 text-left"
-              >
-                FirstName
-              </label>
-              <input
-                id="firstName"
-                type="text"
-                placeholder="Enter Fisrt Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="w-full p-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="lastName"
-                className="text-gray-700 font-medium block mb-1 text-left"
-              >
-                Last Name
-              </label>
-              <input
-                id="lastName"
-                type="text"
-                placeholder="Enter Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="w-full p-2 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="text-gray-700 font-medium block mb-1 text-left"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter password"
-                  required
-                  value={formData.password}
-                  name="password"
-                  onChange={handleChange}
-                  className="w-full p-2 pr-10 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600"
+          {otpSent && !emailVerified && (
+            <>
+              <Grid item xs={12}>
+                <Box display="flex" justifyContent="center" gap={1}>
+                  {otpInputs.map((digit, i) => (
+                    <TextField
+                      key={i}
+                      id={`otp-${i}`}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      inputProps={{
+                        maxLength: 1,
+                        style: { textAlign: "center" },
+                      }}
+                      sx={{ width: "50px" }}
+                    />
+                  ))}
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleVerifyOtp}
+                  disabled={verifyingOtp}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </div>
+                  {verifyingOtp ? <CircularProgress size={24} /> : "Verify OTP"}
+                </Button>
+              </Grid>
+            </>
+          )}
 
-            {/* Sign Up Button */}
-            <button
-              type="submit"
-              className="font-semibold py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition text-sm"
-            >
-              Sign Up
-            </button>
-          </>
-        )}
+          {emailVerified && (
+            <>
+              <Grid item xs={6}>
+                <TextField
+                  label="First Name"
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Last Name"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+          <TextField
+  label="Password"
+  type="password"
+  value={formData.password}
+  onChange={(e) => {
+    setFormData({ ...formData, password: e.target.value });
+    if (passwordError) setPasswordError(""); // Clear error on change
+  }}
+  error={!!passwordError}
+  helperText={passwordError}
+  fullWidth
+  required
+/>
 
-        {/* Login Link */}
-        <p className="mt-4 text-center text-gray-600 text-sm">
-          Already have an account?{" "}
-          <button
-            type="button"
-            onClick={() => switchToLogin()}
-            className="text-indigo-600 hover:underline font-medium"
-          >
-            Login
-          </button>
-        </p>
+              </Grid>
+              <Grid item xs={12}>
+<Button
+  type="submit"
+  fullWidth
+  variant="contained"
+  color="primary"
+  disabled={!emailVerified || registerLoading}
+>
+  {registerLoading ? <CircularProgress size={24} color="inherit" /> : "Register"}
+</Button>
+
+              </Grid>
+            </>
+          )}
+        </Grid>
       </form>
-    </div>
+
+      <Box display="flex" justifyContent="center" mt={2}>
+        <span>If you already have an account?</span>
+        <Button onClick={() => navigate("/login")} size="small">
+          Login
+        </Button>
+      </Box>
+
+      <Snackbar
+        open={snackBarOpen}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%" }}>
+          {snackBarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }
-
-export default Register;

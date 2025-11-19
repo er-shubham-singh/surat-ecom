@@ -1,4 +1,4 @@
-// src/redux/Auth/authReducer.js
+
 import {
   REGISTER_REQUEST,
   REGISTER_SUCCESS,
@@ -6,151 +6,75 @@ import {
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
   LOGIN_FAILURE,
-  SEND_VERIFY_OTP_REQUEST,
-  SEND_VERIFY_OTP_SUCCESS,
-  SEND_VERIFY_OTP_FAILURE,
-  CONFIRM_VERIFY_OTP_REQUEST,
-  CONFIRM_VERIFY_OTP_SUCCESS,
-  CONFIRM_VERIFY_OTP_FAILURE,
-  SEND_RESET_OTP_REQUEST,
-  SEND_RESET_OTP_SUCCESS,
-  SEND_RESET_OTP_FAILURE,
-  RESET_PASSWORD_REQUEST,
-  RESET_PASSWORD_SUCCESS,
-  RESET_PASSWORD_FAILURE,
+  GET_USER_REQUEST,
+  GET_USER_SUCCESS,
+  GET_USER_FAILURE,
+  GET_ALL_USERS_REQUEST,
+  GET_ALL_USERS_SUCCESS,
+  GET_ALL_USERS_FAILURE,
   LOGOUT,
-} from "./actionType";
+} from "./ActionTypes";
 
 const initialState = {
-  loading: false,
   user: null,
-  token: null,
-  message: "",
-  success: "",
-  error: "",
-  isAuthenticated: false,
-  isVerified: false,
+  userList: [],
+  isLoading: false,
+  error: null,
 };
 
-export default function authReducer(state = initialState, action) {
+const authReducer = (state = initialState, action) => {
   switch (action.type) {
-    /* ---------- REGISTER ---------- */
     case REGISTER_REQUEST:
+    case LOGIN_REQUEST:
+    case GET_USER_REQUEST:
+    case GET_ALL_USERS_REQUEST:
       return {
         ...state,
-        loading: true,
-        error: "",
-        success: "",
+        isLoading: true,
+        error: null,
       };
 
     case REGISTER_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        user: action.payload.user || null,
-        token: action.payload.token || null,
-        isAuthenticated: Boolean(action.payload.token),
-        message: action.payload.message || "",
-        success: action.payload.message || "Registered successfully",
-        error: "",
-      };
-
-    case REGISTER_FAILURE:
-      return {
-        ...state,
-        loading: false,
-        error: action.payload || "Registration failed",
-        success: "",
-      };
-
-    /* ---------- LOGIN ---------- */
-    case LOGIN_REQUEST:
-      return {
-        ...state,
-        loading: true,
-        error: "",
-        success: "",
-      };
-
     case LOGIN_SUCCESS:
       return {
         ...state,
-        loading: false,
-        user: action.payload.user || null,
-        token: action.payload.token || null,
-        isAuthenticated: Boolean(action.payload.token),
-        message: action.payload.message || "",
-        success: action.payload.message || "Logged in successfully",
-        error: "",
+        isLoading: false,
       };
 
+    case REGISTER_FAILURE:
     case LOGIN_FAILURE:
+    case GET_USER_FAILURE:
+    case GET_ALL_USERS_FAILURE:
       return {
         ...state,
-        loading: false,
-        error: action.payload || "Login failed",
-        success: "",
+        isLoading: false,
+        error: action.payload,
       };
 
-    /* ---------- OTP / RESET ---------- */
-    case SEND_VERIFY_OTP_REQUEST:
-    case CONFIRM_VERIFY_OTP_REQUEST:
-    case SEND_RESET_OTP_REQUEST:
-    case RESET_PASSWORD_REQUEST:
+    case GET_USER_SUCCESS:
       return {
         ...state,
-        loading: true,
-        error: "",
-        success: "",
+        isLoading: false,
+        user: action.payload, // ✅ Only updates user
       };
 
-    case SEND_VERIFY_OTP_SUCCESS:
+    case GET_ALL_USERS_SUCCESS:
       return {
         ...state,
-        loading: false,
-        message: action.payload || "",
-        success: action.payload || "OTP sent",
-        error: "",
+        isLoading: false,
+        userList: action.payload, // ✅ Only updates userList
       };
 
-    case CONFIRM_VERIFY_OTP_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        message: action.payload || "Email verified",
-        success: action.payload || "Verified",
-        isVerified: true,
-        error: "",
-      };
-
-    case SEND_RESET_OTP_SUCCESS:
-    case RESET_PASSWORD_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        message: action.payload || "",
-        success: action.payload || "",
-        error: "",
-      };
-
-    case SEND_VERIFY_OTP_FAILURE:
-    case CONFIRM_VERIFY_OTP_FAILURE:
-    case SEND_RESET_OTP_FAILURE:
-    case RESET_PASSWORD_FAILURE:
-      return {
-        ...state,
-        loading: false,
-        error: action.payload || "",
-        success: "",
-      };
-
-    /* ---------- LOGOUT ---------- */
     case LOGOUT:
+      localStorage.removeItem("jwt");
       return {
-        ...initialState,
+        ...state,
+        user: null,
       };
 
     default:
       return state;
   }
-}
+};
+
+export default authReducer;

@@ -17,37 +17,6 @@ import {
   UPDATE_CART_ITEM_SUCCESS,
 } from "./ActionType";
 
-// export const addItemToCart = (reqData) => async (dispatch) => {
-//     console.log("req data ",reqData)
-//   try {
-   
-//     dispatch({ type: ADD_ITEM_TO_CART_REQUEST });
-//     const config = {
-//       headers: {
-//         Authorization: `Bearer ${reqData.jwt}`,
-//         "Content-Type": "application/json",
-//       },
-//     };
-//     const { data } = await axios.put(`${API_BASE_URL}/api/cart/add`, 
-//       reqData.data,
-//       config,
-//     );
-// console.log("add item to cart ",data)
-//     dispatch({
-//       type: ADD_ITEM_TO_CART_SUCCESS,
-//       payload: data,
-//     });
-//   } catch (error) {
-//     dispatch({
-//       type: ADD_ITEM_TO_CART_FAILURE,
-//       payload:
-//         error.response && error.response.data.message
-//           ? error.response.data.message
-//           : error.message,
-//     });
-//   }
-// };
-
 export const addItemToCart = (reqData) => async (dispatch) => {
   try {
     dispatch({ type: ADD_ITEM_TO_CART_REQUEST });

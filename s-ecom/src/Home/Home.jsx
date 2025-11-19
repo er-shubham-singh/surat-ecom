@@ -249,27 +249,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* DEMO NAV BUTTONS (keeps same look) */}
-      <div className="flex flex-wrap gap-4 mt-6 justify-center px-4">
-        <button
-          className="text-black bg-red-500 p-4 rounded cursor-pointer"
-          onClick={() => navigate("/product")}
-        >
-          Product
-        </button>
-        <button
-          className="bg-red-500 p-4 rounded cursor-pointer"
-          onClick={() => navigate("/productdetailpage")}
-        >
-          Product details
-        </button>
-        <button
-          className="bg-red-500 p-4 rounded cursor-pointer"
-          onClick={() => navigate("/cart")}
-        >
-          Cart
-        </button>
-      </div>
 
       {/* NEW ARRIVALS SECTION */}
       <section className="py-10 sm:py-14 md:py-20 lg:py-28 bg-[#FFFDF6] relative overflow-hidden">

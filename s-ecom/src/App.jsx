@@ -15,6 +15,8 @@ function App() {
     <>
       <Header />
       <Routes>
+             <Route path="/login" element={<Home />}></Route>
+     <Route path="/register" element={<Home />}></Route>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/:lavelOne/:lavelTwo/:lavelThree" element={<ProductPage />} />

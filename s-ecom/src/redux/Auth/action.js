@@ -1,5 +1,4 @@
-// src/redux/Auth/action.js
-import api from "../../Config/api";
+import axios from 'axios';
 import {
   REGISTER_REQUEST,
   REGISTER_SUCCESS,
@@ -7,134 +6,109 @@ import {
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
   LOGIN_FAILURE,
-  SEND_VERIFY_OTP_REQUEST,
-  SEND_VERIFY_OTP_SUCCESS,
-  SEND_VERIFY_OTP_FAILURE,
-  CONFIRM_VERIFY_OTP_REQUEST,
-  CONFIRM_VERIFY_OTP_SUCCESS,
-  CONFIRM_VERIFY_OTP_FAILURE,
-  SEND_RESET_OTP_REQUEST,
-  SEND_RESET_OTP_SUCCESS,
-  SEND_RESET_OTP_FAILURE,
-  RESET_PASSWORD_REQUEST,
-  RESET_PASSWORD_SUCCESS,
-  RESET_PASSWORD_FAILURE,
-  LOGOUT,
-} from "./actionType";
+  GET_USER_REQUEST,
+  GET_USER_SUCCESS,
+  GET_USER_FAILURE,
+  GET_ALL_USERS_REQUEST,
+  GET_ALL_USERS_SUCCESS,
+  GET_ALL_USERS_FAILURE,
+  LOGOUT
+} from './ActionTypes';
+import api, { API_BASE_URL } from '../../config/api';
 
-/**
- * Helper to extract error message
- */
-const extractError = (error) => error?.response?.data?.error || error?.message || "Something went wrong";
+// Register action creators
+const registerRequest = () => ({ type: REGISTER_REQUEST });
+const registerSuccess = (user) => ({ type: REGISTER_SUCCESS, payload:user });
+const registerFailure = error => ({ type: REGISTER_FAILURE, payload: error });
 
-/* ------------------ REGISTER ------------------ */
-export const registerUser = (userData) => async (dispatch) => {
-  dispatch({ type: REGISTER_REQUEST });
+export const register = userData => async dispatch => {
+  dispatch(registerRequest());
   try {
-    const res = await api.post("/api/register", userData);
-    const data = res.data || {};
-
-    if (data?.token) localStorage.setItem("token", data.token);
-
-    dispatch({
-      type: REGISTER_SUCCESS,
-      payload: data,
-    });
-
-    // return something useful to UI
-    return { success: true, ...data };
+    const response=await axios.post(`${API_BASE_URL}/auth/signup`, userData);
+    const user = response.data;
+    if(user.jwt) localStorage.setItem("jwt",user.jwt)
+    console.log("registerr :",user)
+    dispatch(registerSuccess(user));
   } catch (error) {
-    const payload = extractError(error);
-    dispatch({ type: REGISTER_FAILURE, payload });
-    // keep same shape for UI
-    return Promise.resolve({ success: false, error: payload });
+    dispatch(registerFailure(error.message));
   }
 };
 
-/* ------------------ LOGIN ------------------ */
-export const loginUser = (userData) => async (dispatch) => {
-  dispatch({ type: LOGIN_REQUEST });
+// Login action creators
+const loginRequest = () => ({ type: LOGIN_REQUEST });
+const loginSuccess = user => ({ type: LOGIN_SUCCESS, payload: user });
+const loginFailure = error => ({ type: LOGIN_FAILURE, payload: error });
+
+export const login = userData => async dispatch => {
+  dispatch(loginRequest());
   try {
-    const res = await api.post("/api/login", userData);
-    const data = res.data || {};
-
-    if (data?.token) localStorage.setItem("token", data.token);
-
-    dispatch({
-      type: LOGIN_SUCCESS,
-      payload: data,
-    });
-
-    return { success: true, ...data };
+    const response = await axios.post(`${API_BASE_URL}/auth/signin`, userData);
+    const user = response.data;
+    if(user.jwt) localStorage.setItem("jwt",user.jwt)
+    console.log("login ",user)
+    dispatch(loginSuccess(user));
   } catch (error) {
-    const payload = extractError(error);
-    dispatch({ type: LOGIN_FAILURE, payload });
-    return Promise.resolve({ success: false, error: payload });
+    const errorMessage =
+  error.response?.data?.message || "Login failed. Please try again.";
+dispatch(loginFailure(errorMessage));
   }
 };
 
-/* ------------------ OTP: Verify Email ------------------ */
-export const sendVerifyOtp = (email) => async (dispatch) => {
-  dispatch({ type: SEND_VERIFY_OTP_REQUEST });
-  try {
-    const res = await api.post("/api/request-verify-otp", { email });
-    const msg = res.data?.message || "OTP sent";
-    dispatch({ type: SEND_VERIFY_OTP_SUCCESS, payload: msg });
-    return { success: true, message: msg };
-  } catch (error) {
-    const payload = extractError(error);
-    dispatch({ type: SEND_VERIFY_OTP_FAILURE, payload });
-    return Promise.resolve({ success: false, error: payload });
-  }
+
+
+//  get user from token
+export const getUser = (token) => {
+  return async (dispatch) => {
+    dispatch({ type: GET_USER_REQUEST });
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/users/profile`,{
+        headers:{
+          "Authorization":`Bearer ${token}`
+        }
+      });
+      const user = response.data;
+      dispatch({ type: GET_USER_SUCCESS, payload: user });
+      console.log("req User ",user)
+    } catch (error) {
+      const errorMessage = error.message;
+      dispatch({ type: GET_USER_FAILURE, payload: errorMessage });
+    }
+  };
 };
 
-export const confirmVerifyOtp = (email, otp) => async (dispatch) => {
-  dispatch({ type: CONFIRM_VERIFY_OTP_REQUEST });
-  try {
-    const res = await api.post("/api/confirm-verify-otp", { email, otp });
-    const msg = res.data?.message || "Verified";
-    dispatch({ type: CONFIRM_VERIFY_OTP_SUCCESS, payload: msg });
-    // set isVerified true in reducer based on this action
-    return { success: true, message: msg };
-  } catch (error) {
-    const payload = extractError(error);
-    dispatch({ type: CONFIRM_VERIFY_OTP_FAILURE, payload });
-    return Promise.resolve({ success: false, error: payload });
-  }
+export const allUser = () => {
+  return async (dispatch) => {
+    dispatch({ type: GET_ALL_USERS_REQUEST }); // optional but good for loading state
+
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/users`);
+      const users = response.data;
+
+      console.log("all users..", users);
+
+      dispatch({ type: GET_ALL_USERS_SUCCESS, payload: users }); // ✅ CORRECTED
+    } catch (err) {
+      const errorMessage = err.message;
+      dispatch({ type: GET_ALL_USERS_FAILURE, payload: errorMessage });
+    }
+  };
 };
 
-/* ------------------ FORGOT / RESET PASSWORD ------------------ */
-export const sendResetOtp = (email) => async (dispatch) => {
-  dispatch({ type: SEND_RESET_OTP_REQUEST });
-  try {
-    const res = await api.post("/api/request-reset-otp", { email });
-    const msg = res.data?.message || "Reset OTP sent";
-    dispatch({ type: SEND_RESET_OTP_SUCCESS, payload: msg });
-    return { success: true, message: msg };
-  } catch (error) {
-    const payload = extractError(error);
-    dispatch({ type: SEND_RESET_OTP_FAILURE, payload });
-    return Promise.resolve({ success: false, error: payload });
-  }
-};
 
-export const resetPassword = (email, otp, newPassword) => async (dispatch) => {
-  dispatch({ type: RESET_PASSWORD_REQUEST });
-  try {
-    const res = await api.post("/api/reset-password", { email, otp, newPassword });
-    const msg = res.data?.message || "Password reset success";
-    dispatch({ type: RESET_PASSWORD_SUCCESS, payload: msg });
-    return { success: true, message: msg };
-  } catch (error) {
-    const payload = extractError(error);
-    dispatch({ type: RESET_PASSWORD_FAILURE, payload });
-    return Promise.resolve({ success: false, error: payload });
-  }
-};
+export const logout = (token) => {
+    return async (dispatch) => {
+      dispatch({ type: LOGOUT });
+      localStorage.clear();
+    };
+  };
 
-/* ------------------ LOGOUT ------------------ */
-export const logout = () => (dispatch) => {
-  localStorage.removeItem("token");
-  dispatch({ type: LOGOUT });
-  return { success: true };
+  
+  // ✅ Load user from JWT in localStorage (for auto-login after refresh)
+export const loadUserFromToken = () => {
+  return async (dispatch) => {
+    const token = localStorage.getItem("jwt");
+    if (token) {
+      dispatch(getUser(token)); // 🔁 This will fetch and set user in Redux
+    }
+  };
 };
