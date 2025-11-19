@@ -4,7 +4,7 @@ import customerProductReducer from "./product/reducer";
 import cartReducer from './Cart/Reducer'
 import {applyMiddleware, combineReducers, legacy_createStore} from "redux"
 import {thunk} from "redux-thunk";
-import authReducer from "./Auth/Reducer";
+import authReducer from "./Auth/reducer";
 
 const rootReducers=combineReducers({
 
