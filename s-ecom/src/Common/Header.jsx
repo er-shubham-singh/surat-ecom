@@ -3,7 +3,7 @@ import React, { useRef, useLayoutEffect, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import navigation from "../Config/navigation";
-import AuthModal from "../Component/Auth/AuthModal";
+import AuthModal from "../Component/auth/AuthModal";
 import { getUser, logout } from "../redux/Auth/Action";
 import { getCart } from "../redux/Cart/Action";
 
