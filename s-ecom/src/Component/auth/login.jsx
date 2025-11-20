@@ -11,8 +11,9 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getUser, login } from "../../redux/Auth/Action";
+import { getUser, login } from "../../redux/Auth/action";
 import axios from "axios";
+
 
 export default function LoginUserForm({ handleNext }) {
   const navigate = useNavigate();

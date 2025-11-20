@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { register } from "../../redux/Auth/Action";
+import { register } from "../../redux/Auth/action";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import React from 'react'
