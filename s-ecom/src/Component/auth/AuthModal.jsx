@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
-import RegisterUserForm from "./Register";
+import RegisterUserForm from "./register";
 import React,{ useEffect } from "react";
 import LoginUserForm from "./Login";
 import { useLocation, useNavigate } from "react-router-dom";
