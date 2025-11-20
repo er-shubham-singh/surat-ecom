@@ -22,7 +22,7 @@ import {
   SEARCH_PRODUCTS_REQUEST,
   SEARCH_PRODUCTS_SUCCESS,
   SEARCH_PRODUCTS_FAILURE,
-} from "./ActionType";
+} from "./actionType";
 import api from "../../Config/api";
 
 export const findProducts = (reqData) => async (dispatch) => {
