@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { findProducts } from "../redux/Product/action"; // <- adjust path
+import { findProducts } from "../redux/product/action"; // <- adjust path
 
 const ProductPage = () => {
   const [sortBy, setSortBy] = useState("featured");

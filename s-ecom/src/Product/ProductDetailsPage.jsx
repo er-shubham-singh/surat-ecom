@@ -22,7 +22,7 @@ import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
 
 // <-- adjust these paths to your project structure
-import { findProductById } from "../redux/Product/action";
+import { findProductById } from "../redux/product/action";
 import { addItemToCart, getCart } from "../redux/Cart/Action";
 import { getAllReviews, getRatingSummary } from "../redux/Review/Action";
 
