@@ -232,7 +232,7 @@ async function sendOrderConfirmationEmail(to, order) {
 
   Total: ${formatCurrency(order.totalDiscountedPrice)}
 
-  View your order: ${process.env.ORDER_TRACKING_URL || "Visit your account to see details."}
+  View your order: ${process.env.ORDER_TRACKING_URL || "Visit  your account to see details."}
   `;
 
   console.log("EMAIL DEBUG >> sending to:", to);
