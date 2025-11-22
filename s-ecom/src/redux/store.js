@@ -6,13 +6,19 @@ import {applyMiddleware, combineReducers, legacy_createStore} from "redux"
 import {thunk} from "redux-thunk";
 import authReducer from "./Auth/reducer";
 import {couponReducer} from './Coupon/couponReducer'
-
+import {orderReducer} from './Order/Reducer'
+import ReviewReducer from "./Review/Reducer";
+import RatingSummaryReducer from './Review/ratingSummaryReducer'
 const rootReducers=combineReducers({
 
     auth: authReducer,
     customersProduct:customerProductReducer,
     cart:cartReducer,
-    coupon:couponReducer
+    order:orderReducer,
+    coupon:couponReducer,
+    review:ReviewReducer,
+    ratingSummaryState: RatingSummaryReducer,
+
 
 
 });

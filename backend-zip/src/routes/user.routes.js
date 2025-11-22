@@ -2,6 +2,7 @@
 
 const express = require("express");
 const authController = require("../controllers/user.controller");
+const userController=require("../controllers/user.controller.js")
 
 const router = express.Router();
 
@@ -16,5 +17,8 @@ router.post("/confirm-verify-otp", authController.confirmVerifyOtp);
 // Password reset via OTP
 router.post("/request-reset-otp", authController.requestResetOtp);
 router.post("/reset-password", authController.resetPassword);
+
+router.get("/",userController.getAllUsers)
+router.get("/profile",userController.getUserProfile)
 
 module.exports = router;

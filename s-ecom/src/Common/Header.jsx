@@ -7,18 +7,13 @@ import AuthModal from "../Component/auth/AuthModal";
 import { getUser, logout } from "../redux/Auth/action";
 import { getCart } from "../redux/Cart/Action";
 
-import {
-  ShoppingBagIcon,
-} from "@heroicons/react/24/outline";
-
-import {
-  Button,
-} from "@mui/material";
+import { ShoppingBagIcon } from "@heroicons/react/24/outline";
+import { Button } from "@mui/material";
 
 const iconButtonClass =
   "p-2.5 rounded-full hover:bg-white/10 focus:bg-white/10 transition-all duration-300 flex items-center justify-center outline-none relative group";
 
-/* SVG icons */
+/* SVG icons (unchanged) */
 const SearchIcon = (props) => (
   <svg
     {...props}
@@ -102,15 +97,13 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // single source of truth for auth modal (like your reference Navigation)
+  // single source of truth for auth modal
   const [openAuthModal, setOpenAuthModal] = useState(false);
 
   // Redux state (defensive)
-  const { auth, cart } = useSelector((store) => store);
-
-  const jwt =
-    typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
-
+  const auth = useSelector((store) => store.auth);
+  const cart = useSelector((store) => store.cart);
+  const jwt = localStorage.getItem("jwt");
   const { user, isAuthenticated } = auth;
 
   const headerRef = useRef(null);
@@ -123,7 +116,7 @@ export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
-  // Helpers for auth modal (matching reference Navigation behavior)
+  // Helpers for auth modal
   const handleOpenAuth = () => setOpenAuthModal(true);
   const handleCloseAuth = () => setOpenAuthModal(false);
 
@@ -186,7 +179,6 @@ export default function Header() {
   };
 
   const handleLogout = () => {
-    // ✅ use correct logout from redux/Auth/Action
     dispatch(logout());
     setProfileOpen(false);
     navigate("/", { replace: true });
@@ -237,6 +229,9 @@ export default function Header() {
   const firstChar = displayName
     ? displayName.trim().charAt(0).toUpperCase()
     : null;
+
+  // robust logged-in flag: use auth.isAuthenticated OR presence of user object
+  const loggedIn = Boolean(isAuthenticated) || Boolean(user);
 
   return (
     <>
@@ -342,8 +337,7 @@ export default function Header() {
               <ul className="flex items-center gap-1 font-semibold uppercase tracking-wider text-sm lg:text-base">
                 {navigation.map((nav) => {
                   const isMega =
-                    Array.isArray(nav.categories) &&
-                    nav.categories.length > 0;
+                    Array.isArray(nav.categories) && nav.categories.length > 0;
                   const isOpen = openMenu === nav.id;
 
                   return (
@@ -397,11 +391,7 @@ export default function Header() {
                                       {cat.subHeadings?.map((item) => (
                                         <li key={item.id}>
                                           <Link
-                                            to={
-                                              item.path ||
-                                              item.href ||
-                                              "#"
-                                            }
+                                            to={item.path || item.href || "#"}
                                             className="block text-[#666] hover:text-[#CBE600] transition-colors text-sm leading-relaxed"
                                           >
                                             {item.name}
@@ -417,11 +407,7 @@ export default function Header() {
                                 {Array.isArray(nav.featured) &&
                                 nav.featured.length > 0 ? (
                                   <Link
-                                    to={
-                                      nav.featured[0].href ||
-                                      nav.path ||
-                                      "#"
-                                    }
+                                    to={nav.featured[0].href || nav.path || "#"}
                                     className="block rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 w-full"
                                   >
                                     <img
@@ -467,19 +453,18 @@ export default function Header() {
               <div className="relative" ref={profileRef}>
                 <button
                   aria-label="Account"
-                  className={`${iconButtonClass} ${
-                    isAuthenticated ? "px-1" : ""
-                  }`}
+                  aria-haspopup="true"
+                  aria-expanded={profileOpen}
+                  className={`${iconButtonClass} ${loggedIn ? "px-1" : ""}`}
                   onClick={() => {
-                    if (!isAuthenticated) {
-                      // open auth modal like reference Navigation
+                    if (!loggedIn) {
                       handleOpenAuth();
                       return;
                     }
                     setProfileOpen((p) => !p);
                   }}
                 >
-                  {isAuthenticated && firstChar ? (
+                  {loggedIn && firstChar ? (
                     <div className="w-8 h-8 bg-[#CBE600] text-[#111111] font-bold rounded-full flex items-center justify-center text-sm shadow-md select-none">
                       {firstChar}
                     </div>
@@ -494,19 +479,34 @@ export default function Header() {
                 </button>
 
                 {/* Profile dropdown */}
-                {isAuthenticated && (
+                {loggedIn && (
                   <div
-                    className={`absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white border z-50 transition-transform origin-top-right ${
+                    className={`absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white border z-50 transition-transform origin-top-right ${
                       profileOpen
                         ? "scale-100 opacity-100"
                         : "scale-95 opacity-0 pointer-events-none"
                     }`}
+                    role="menu"
+                    aria-hidden={!profileOpen}
                   >
                     <div className="p-2">
                       <div className="px-3 py-2 text-sm text-gray-700 font-medium">
                         Hello, {displayName}
                       </div>
                       <div className="border-t my-1" />
+
+                      {/* My Orders */}
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          navigate("/account/order");
+                        }}
+                        className="w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm"
+                      >
+                        My Orders
+                      </button>
+
+                      {/* Profile */}
                       <button
                         onClick={() => {
                           setProfileOpen(false);
@@ -516,6 +516,7 @@ export default function Header() {
                       >
                         Profile
                       </button>
+
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm text-red-600 font-medium"
@@ -527,7 +528,7 @@ export default function Header() {
                 )}
               </div>
 
-              {/* Cart Button (like your reference) */}
+              {/* Cart Button */}
               <div className="ml-4 flow-root lg:ml-6">
                 <Button
                   onClick={() => navigate("/cart")}
@@ -687,7 +688,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Auth Modal - same pattern as your first Navigation component */}
+      {/* Auth Modal */}
       <AuthModal handleClose={handleCloseAuth} open={openAuthModal} />
     </>
   );

@@ -1,503 +1,379 @@
-import React, { useEffect, useState } from 'react';
+
 import Confetti from "react-confetti";
-import { X, Plus, Minus, ArrowRight, Heart, Trash2, Truck, Lock, Tag } from 'lucide-react';
-import { Box, Backdrop, CircularProgress } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import CartItem from "./CartItem";
+import { Backdrop, Button, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
-// redux actions (make sure these exist in your project)
+import { useDispatch, useSelector } from "react-redux";
 import { getCart } from "../redux/Cart/Action";
-import { applyCoupon, allCoupon, clearCouponState } from "../redux/Coupon/couponActions"; // adjust path if needed
+import RequireLogin from "../Component/Auth/RequireLogin";
+import DiscountIcon from "@mui/icons-material/Discount";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { Box } from "@mui/material";
+import { applyCoupon, allCoupon, clearCouponState } from "../redux/Coupon/couponActions";
 
-// --- small hook to get window size for confetti
+// A custom hook to get the window size for the confetti
 const useWindowSize = () => {
   const getSize = () => ({
-    width: typeof window !== "undefined" ? window.innerWidth : 1200,
-    height:
-      typeof window !== "undefined"
-        ? Math.max(window.innerHeight, document.documentElement.clientHeight, document.body.scrollHeight)
-        : 800,
+    width: window.innerWidth,
+    height: Math.max(window.innerHeight, document.documentElement.clientHeight, document.body.scrollHeight),
   });
 
   const [windowSize, setWindowSize] = useState(getSize());
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => setWindowSize(getSize());
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return windowSize;
 };
 
+
 const CartPage = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  // --- UI states
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, discount (percent), amount (currency) }
+  const [couponCode, setCouponCode] = useState("");
+  const [showAvailableCoupons, setShowAvailableCoupons] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-
-  // --- redux slices (expected shape: cart: { cartItems, cart, loading }, auth: { user }, coupon: {...})
-  const store = useSelector((s) => s);
-  const cartSlice = store.cart || {};
-  const authSlice = store.auth || {};
-  const couponSlice = store.coupon || {};
-
-  // Unpack commonly-used redux fields (if present)
-  const { cartItems: reduxCartItems = [], cart: reduxCart = null, loading: cartLoading = false } = cartSlice;
-  const user = authSlice.user || null;
-  const {
-    message: couponMessage,
-    error: couponError,
-    difference: couponDifference,
-    discountAmount: couponDiscountAmount,
-    allCoupons = []
-  } = couponSlice;
-
-  // Confetti size
   const { width, height } = useWindowSize();
 
-  // detect JWT (if present we use backend flows)
-  const jwt = typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
-  const isLoggedIn = Boolean(jwt && user && user._id);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { cart, auth, coupon } = useSelector((store) => store);
+  
+  const availableCoupons = coupon?.allCoupons || [];
 
-  // --- Effects: on mount, clear coupon state and if logged in fetch cart + coupons
+  const jwt = localStorage.getItem("jwt");
+  const user = auth.user;
+
+  const { discountAmount, message, error } = coupon;
+
+  // This useEffect will run only once when the component mounts.
+  // It dispatches an action to clear the coupon state in Redux,
+  // preventing the success message and confetti from showing on page refresh.
   useEffect(() => {
-    // clear any previous coupon state to avoid auto-message on refresh
-    try { dispatch(clearCouponState()); } catch (e) {}
+    dispatch(clearCouponState());
+  }, [dispatch]);
 
-    if (isLoggedIn) {
+  useEffect(() => {
+    if (jwt) {
       dispatch(getCart(jwt));
       dispatch(allCoupon());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, isLoggedIn, jwt]);
+  }, [dispatch, jwt]);
 
-  // show confetti when coupon message appears (same behavior as original component)
+  // This useEffect now correctly handles the celebration when a coupon is applied.
+  // It depends on the Redux state, which is now clean on page load.
   useEffect(() => {
-    if (couponMessage && !couponError) {
+    if (message && !error) {
       setShowConfetti(true);
-      const t = setTimeout(() => setShowConfetti(false), 5000);
-      // reflect backend coupon into local appliedCoupon state (safe mapping)
-      const inferredDiscountPercent = couponSlice.discountPercent || couponSlice.discountValue || 0;
-      const inferredAmount = couponDifference || couponDiscountAmount || 0;
-      setAppliedCoupon({ code: couponCode || couponSlice.code || "", discount: inferredDiscountPercent, amount: inferredAmount });
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => {
+        setShowConfetti(false);
+      }, 5000); // Confetti and message show for 5 seconds
+
+      return () => clearTimeout(timer);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [couponMessage, couponError]);
+  }, [message, error, dispatch]);
 
-  // If backend clears coupon (or error), update local appliedCoupon state
-  useEffect(() => {
-    if (couponError) {
-      // clear any local applied coupon if backend says error
-      setAppliedCoupon(null);
-    }
-  }, [couponError]);
 
-  // Utility: read current items from redux only (no local sample data)
-  const getCurrentItems = () => {
-    if (Array.isArray(reduxCartItems) && reduxCartItems.length > 0) {
-      return reduxCartItems.flat().map((it, idx) => ({
-        id: it._id || it.productId || `r-${idx}`,
-        name: it.name || it.title || (it.product && it.product.name) || "Product",
-        price: Number(it.price ?? it.salePrice ?? (it.product && it.product.price) ?? 0),
-        originalPrice: Number(it.originalPrice ?? it.mrp ?? (it.product && it.product.originalPrice) ?? 0),
-        quantity: Number(it.quantity ?? it.qty ?? it.count ?? 1),
-        color: it.color || (it.product && it.product.color) || "",
-        size: it.size || (it.product && it.product.size) || "",
-        image: (it.images && it.images[0]) || it.image || (it.product && it.product.image) || "",
-        inStock: typeof it.inStock === "boolean" ? it.inStock : true,
-        raw: it
-      }));
-    }
-    // NO fallback sample data — return empty array when redux has none
-    return [];
-  };
-
-  const currentItems = getCurrentItems();
-
-  // --- handlers that preserve exact UI (updateQuantity/removeItem) but update redux if logged in
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-
-    if (isLoggedIn) {
-      // TODO: replace with your update-quantity redux action
-      console.warn("Logged-in updateQuantity called — replace with your updateCartItemQuantity action for server update.");
-      try { dispatch(getCart(jwt)); } catch (e) {}
-      return;
-    }
-
-    // when not logged in and no local fallback, do nothing (or you could show a toast)
-    return;
-  };
-
-  const removeItem = (id) => {
-    if (isLoggedIn) {
-      // TODO: replace with your redux action to remove item from cart on server
-      console.warn("Logged-in removeItem called — replace with your remove-from-cart redux action to persist.");
-      try { dispatch(getCart(jwt)); } catch (e) {}
-      return;
-    }
-
-    // no local fallback
-    return;
-  };
-
-  // Coupon apply logic: if logged in, dispatch applyCoupon (server) else no-op (we have removed local sample coupons)
   const handleApplyCoupon = () => {
-    if (!couponCode || couponCode.trim() === "") return;
-
-    if (isLoggedIn && user && reduxCart && reduxCart._id) {
-      // dispatch to backend: applyCoupon(code, userId, cartId, cartTotal)
-      const cartTotal = Number(reduxCart.totalDiscountedPrice ?? reduxCart.totalPrice ?? 0);
-      dispatch(applyCoupon(couponCode.trim(), user._id, reduxCart._id, cartTotal));
-    }
-    // when not logged in, do nothing — no local sample coupons
+    if (!couponCode || !user || !user._id || !cart.cart?._id) return;
+    const cartTotal = cart.cart.totalDiscountedPrice;
+    dispatch(applyCoupon(couponCode, user._id, cart.cart._id, cartTotal));
   };
 
   const handleApplyCouponFromList = (code) => {
     setCouponCode(code);
-    if (isLoggedIn && user && reduxCart && reduxCart._id) {
-      const cartTotal = Number(reduxCart.totalDiscountedPrice ?? reduxCart.totalPrice ?? 0);
-      dispatch(applyCoupon(code, user._id, reduxCart._id, cartTotal));
-    }
+    dispatch(applyCoupon(code, user._id, cart.cart._id, cart.cart.totalDiscountedPrice));
   };
 
-  // --- derived totals (use currentItems so UI stays identical)
-  const subtotal = currentItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
-  const savings = currentItems.reduce((sum, item) => sum + (Number((item.originalPrice || 0) - (item.price || 0)) * Number(item.quantity || 1)), 0);
-  const shipping = subtotal >= 999 ? 0 : 99;
 
-  // coupon discount calculation:
-  let couponDiscount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.amount && Number(appliedCoupon.amount) > 0) {
-      couponDiscount = Number(appliedCoupon.amount);
-    } else if (appliedCoupon.discount) {
-      couponDiscount = (subtotal * Number(appliedCoupon.discount)) / 100;
-    }
-  } else if (isLoggedIn && couponDifference) {
-    couponDiscount = Number(couponDifference);
-  } else if (isLoggedIn && couponDiscountAmount) {
-    couponDiscount = Number(couponDiscountAmount);
+  const toggleCoupons = () => {
+    setShowAvailableCoupons((prev) => !prev);
+  };
+  
+  // Renders a login requirement message if the user is not authenticated.
+  if (!jwt) {
+    return <RequireLogin message="Please log in to view your cart." />;
   }
 
-  const total = subtotal + shipping - couponDiscount;
-
-  // Show loading backdrop when redux cart is loading
-  if (cartLoading) {
+  // Renders a loading spinner while the cart data is being fetched.
+  if (cart.loading) {
     return (
-      <Backdrop open sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+      <Backdrop
+        open
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      >
         <CircularProgress color="inherit" />
       </Backdrop>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDF6]">
-      {/* Confetti + floating success banner (matches original behavior without changing layout) */}
-      {showConfetti && (
-        <>
-          <div className="fixed top-0 left-0 w-full h-full z-[9998] pointer-events-none">
-            <Confetti width={width} height={height} numberOfPieces={width < 768 ? 100 : 300} gravity={0.3} recycle={false} />
-          </div>
+    <div className="bg-gray-50 min-h-screen p-4 md:p-8 font-sans relative">
+      {/* Conditionally render confetti and celebration message */}
+{showConfetti && (
+  <>
+    <div className="fixed top-0 left-0 w-full h-full z-[9998] pointer-events-none">
+      <Confetti
+        width={width}
+        height={height}
+        numberOfPieces={width < 768 ? 100 : 300}
+        gravity={0.3}
+        recycle={false}
+      />
+    </div>
 
-          <Box
-            sx={{
-              position: "fixed",
-              top: "1.5rem",
-              left: "50%",
-              transform: "translateX(-50%)",
-              bgcolor: "success.main",
-              color: "common.white",
-              px: 3,
-              py: 1.5,
-              borderRadius: "12px",
-              boxShadow: 6,
-              fontSize: { xs: "0.875rem", sm: "1rem", md: "1.125rem" },
-              fontWeight: 600,
-              textAlign: "center",
-              zIndex: (theme) => theme.zIndex.modal + 2,
-              width: { xs: "92%", sm: "auto" },
-              maxWidth: 400,
-              animation: "bounce 1s infinite",
-              "@keyframes bounce": {
-                "0%, 100%": { transform: "translateX(-50%) translateY(0)" },
-                "50%": { transform: "translateX(-50%) translateY(-8px)" },
-              },
-            }}
-          >
-            🎉 Coupon Applied Successfully!
-          </Box>
-        </>
-      )}
+<Box
+  sx={{
+    position: "fixed",
+    top: "1.5rem", // same as top-6
+    left: "50%",
+    transform: "translateX(-50%)",
+    bgcolor: "success.main", // MUI green from theme
+    color: "common.white",   // <-- This ensures the text is white
+    px: 3,
+    py: 1.5,
+    borderRadius: "12px",
+    boxShadow: 6,
+    fontSize: {
+      xs: "0.875rem",
+      sm: "1rem",
+      md: "1.125rem",
+    },
+    fontWeight: 600,
+    textAlign: "center",
+    zIndex: (theme) => theme.zIndex.modal + 2, // High z-index
+    width: {
+      xs: "92%",
+      sm: "auto",
+    },
+    maxWidth: 400,
+    animation: "bounce 1s infinite",
+    "@keyframes bounce": {
+      "0%, 100%": {
+        transform: "translateX(-50%) translateY(0)",
+      },
+      "50%": {
+        transform: "translateX(-50%) translateY(-8px)",
+      },
+    },
+  }}
+>
+  🎉 Coupon Applied Successfully!
+</Box>
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#8A6F4F] to-[#6B5B4A] text-white py-8 md:py-12 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm mb-3 md:mb-4 text-white/80">
-            <a href="/" className="hover:text-white transition-colors">
-              Home
-            </a>
-            <span>/</span>
-            <span>Shopping Cart</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light mb-2">
-            Shopping Cart
-          </h1>
-          <p className="text-base md:text-lg text-white/90">
-            {currentItems.length} {currentItems.length === 1 ? "item" : "items"} in
-            your cart
-          </p>
-        </div>
-      </div>
+  </>
+)}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
-          {/* Cart Items */}
-          <div className="xl:col-span-2 space-y-4">
-            {/* Free Shipping Banner */}
-            {subtotal < 999 && subtotal > 0 && (
-              <div className="bg-gradient-to-r from-[#CBE600]/20 to-[#DFF200]/20 border-2 border-[#CBE600] rounded-xl p-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <Truck className="w-5 h-5 md:w-6 md:h-6 text-[#8A6F4F] flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-[#222426] text-sm md:text-base">
-                      Add ₹{Math.max(0, 999 - subtotal)} more to get FREE shipping!
-                    </p>
-                    <div className="w-full bg-white rounded-full h-2 mt-2 overflow-hidden">
-                      <div
-                        className="h-full bg-[#CBE600] transition-all duration-500"
-                        style={{ width: `${Math.min(100, (subtotal / 999) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Cart Items List (preserved design) */}
-            {currentItems.length > 0 ? (
-              currentItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-xl shadow-lg p-4 md:p-6 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="flex flex-col md:flex-row gap-4 md:gap-6">
-                    {/* Image */}
-                    <div className="w-full md:w-28 lg:w-32 h-28 lg:h-32 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden mx-auto md:mx-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                    </div>
-
-                    {/* Details */}
-                    <div className="flex-1">
-                      <div className="flex justify-between mb-2">
-                        <div className="flex-1">
-                          <h3 className="text-base md:text-lg font-semibold text-[#222426] mb-1 hover:text-[#8A6F4F] transition-colors cursor-pointer pr-2">
-                            {item.name}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-600 mb-2">
-                            <span>Color: <span className="font-medium text-[#222426]">{item.color}</span></span>
-                            <span className="hidden sm:inline">•</span>
-                            <span>Size: <span className="font-medium text-[#222426]">{item.size}</span></span>
-                          </div>
-                          {item.inStock ? (
-                            <span className="text-xs text-[#CBE600] font-semibold">In Stock</span>
-                          ) : (
-                            <span className="text-xs text-red-500 font-semibold">Out of Stock</span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors h-fit"
-                          title="Remove item"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-
-                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-4">
-                        {/* Quantity Controls */}
-                        <div className="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden mx-auto md:mx-0">
-                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 md:w-10 h-8 md:h-10 flex items-center justify-center hover:bg-gray-100 transition-colors">
-                            <Minus className="w-3 md:w-4 h-3 md:h-4" />
-                          </button>
-                          <span className="w-10 md:w-12 text-center font-semibold text-sm md:text-base">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 md:w-10 h-8 md:h-10 flex items-center justify-center hover:bg-gray-100 transition-colors">
-                            <Plus className="w-3 md:w-4 h-3 md:h-4" />
-                          </button>
-                        </div>
-
-                        {/* Price */}
-                        <div className="text-left sm:text-right">
-                          <div className="flex items-center gap-2 md:gap-3">
-                            <span className="text-lg md:text-xl font-bold text-[#8A6F4F]">₹{item.price * item.quantity}</span>
-                            {item.originalPrice && <span className="text-xs md:text-sm text-gray-400 line-through">₹{item.originalPrice * item.quantity}</span>}
-                          </div>
-                          {item.originalPrice && <span className="text-xs text-[#CBE600] font-semibold">Save ₹{(item.originalPrice - item.price) * item.quantity}</span>}
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-3 md:gap-4 mt-4 pt-4 border-t border-gray-200">
-                        <button className="flex items-center gap-2 text-xs md:text-sm text-[#8A6F4F] hover:text-[#CBE600] transition-colors font-medium">
-                          <Heart className="w-4 h-4" /> Save for Later
-                        </button>
-                        <button onClick={() => removeItem(item.id)} className="flex items-center gap-2 text-xs md:text-sm text-gray-600 hover:text-red-500 transition-colors font-medium">
-                          <Trash2 className="w-4 h-4" /> Remove
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              /* Empty cart state - preserved look */
-              <div className="flex flex-col justify-center items-center py-20 min-h-[40vh]">
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png"
-                  alt="Empty Cart"
-                  className="w-36 h-36 mb-6 opacity-60"
+      {cart.cartItems?.length > 0 ? (
+        <div className="lg:grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Cart Items Section */}
+          <div className="lg:col-span-2 space-y-4">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Shopping Cart ({cart.cart?.totalItem || 0})</h1>
+            {cart.cartItems.flat().map((item, i) =>
+              item ? (
+                <CartItem
+                  item={item}
+                  showButton={true}
+                  key={item._id || item.productId || i}
                 />
-                <p className="text-2xl font-bold text-gray-700 mb-2">Your cart is empty</p>
-                <p className="text-gray-500 mb-6">Looks like you haven't added anything to your cart yet.</p>
-                <button onClick={() => navigate("/")} className="px-6 py-3 bg-[#8A6F4F] text-white rounded-lg font-semibold hover:bg-[#CBE600] transition-colors">
-                  Continue Shopping
-                </button>
-              </div>
+              ) : null
             )}
-
-            <a href="/products" className="inline-flex items-center gap-2 text-sm md:text-base text-[#8A6F4F] font-semibold hover:gap-3 transition-all duration-300">
-              <ArrowRight className="w-4 md:w-5 h-4 md:h-5 rotate-180" />
-              Continue Shopping
-            </a>
           </div>
 
-          {/* Order Summary (preserved design) */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 sticky top-20 md:top-24">
-              <h2 className="text-xl md:text-2xl font-serif font-semibold text-[#222426] mb-4 md:mb-6">Order Summary</h2>
-
-              {/* Coupon Code */}
-              <div className="mb-4 md:mb-6 pb-4 md:pb-6 border-b border-gray-200">
-                <label className="block text-sm font-semibold text-[#222426] mb-3">Have a Coupon?</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Enter code"
-                    className="flex-1 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border-2 border-gray-300 rounded-lg focus:border-[#CBE600] focus:outline-none focus:ring-2 focus:ring-[#CBE600]/20 transition-all"
-                  />
-                  <button onClick={handleApplyCoupon} className="px-4 md:px-6 py-2 md:py-3 text-sm md:text-base bg-[#8A6F4F] text-white font-semibold rounded-lg hover:bg-[#CBE600] hover:text-black transition-all duration-300">
-                    Apply
-                  </button>
+          {/* Price Summary Section */}
+          <div className="lg:col-span-1 mt-6 lg:mt-0">
+            <div className="sticky top-20 bg-white rounded-xl shadow-lg p-6">
+              <p className="text-lg font-bold text-gray-700 pb-4 border-b">PRICE DETAILS</p>
+              
+              <div className="space-y-4 font-medium text-gray-600 my-4">
+                <div className="flex justify-between items-center">
+                  <span>Price ({cart.cart?.totalItem || 0} items)</span>
+                  <span className="text-gray-800">₹{cart.cart?.totalPrice || 0}</span>
                 </div>
-
-                {/* coupon success message (keeps original tiny tag look) */}
-                { (appliedCoupon || couponMessage) && (
-                  <div className="mt-3 flex items-center gap-2 text-xs md:text-sm text-[#CBE600] font-semibold">
-                    <Tag className="w-4 h-4" />
-                    Coupon "{appliedCoupon?.code || couponSlice?.code || couponCode}" applied!
-                    {appliedCoupon?.discount ? ` ${appliedCoupon.discount}% off` : appliedCoupon?.amount ? ` -₹${appliedCoupon.amount}` : couponDifference ? ` -₹${couponDifference}` : ""}
+                <div className="flex justify-between items-center">
+                  <span>Discount</span>
+                  <span className="text-green-600 font-semibold">-₹{cart.cart?.discounte || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Delivery Charges</span>
+                  <span className="text-green-600 font-semibold">Free</span>
+                </div>
+                {couponCode && coupon?.difference > 0 && (
+                  <div className="flex justify-between items-center text-sm font-semibold text-green-700 bg-green-50 px-3 py-1 rounded">
+                    <span>Coupon Discount ({couponCode.toUpperCase()})</span>
+                    <span>-₹{coupon.difference}</span>
                   </div>
                 )}
-
-                {/* backend error fallback */}
-                {couponError && (
-                  <div className="mt-3 text-xs md:text-sm text-red-600 font-medium">
-                    {couponError}
-                  </div>
-                )}
-
-                <div className="mt-3 space-y-1">
-                  <p className="text-xs text-gray-500">
-                    Try: <span className="font-semibold text-[#8A6F4F]">SAVE10</span> or <span className="font-semibold text-[#8A6F4F]">WELCOME20</span>
-                  </p>
+                <div className="flex justify-between items-center border-t pt-4 font-bold text-lg text-gray-800">
+                  <span>Total Amount</span>
+                  <span className="text-green-600">
+                    ₹
+                    {(cart.cart?.totalDiscountedPrice || 0) - (coupon?.difference || 0)}
+                  </span>
                 </div>
               </div>
 
-              {/* Price Breakdown */}
-              <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
-                <div className="flex justify-between text-sm md:text-base text-gray-700">
-                  <span>Subtotal ({currentItems.length} items)</span>
-                  <span className="font-semibold">₹{subtotal}</span>
+              {/* Coupon Application Section */}
+              <div className="mt-6 border-t pt-6">
+                <div className="flex items-center justify-between text-blue-600 cursor-pointer" onClick={toggleCoupons}>
+                  <div className="flex items-center gap-2">
+                    <DiscountIcon />
+                    <p className="font-semibold">
+                      {showAvailableCoupons ? "Hide Coupons" : "View & Apply Coupons"}
+                    </p>
+                  </div>
+                  {showAvailableCoupons ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                 </div>
-                {savings > 0 && (
-                  <div className="flex justify-between text-sm md:text-base text-[#CBE600] font-semibold">
-                    <span>You Save</span>
-                    <span>-₹{savings}</span>
+
+                {/* Coupon Input */}
+                <div className="flex flex-col gap-3 mt-4">
+                  <div className="flex w-full">
+                    <input
+                      type="text"
+                      placeholder="Enter coupon code (e.g. FLUTEON100)"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      className="border-gray-300 border rounded-l-lg px-4 py-2 w-full text-sm focus:outline-blue-500"
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={handleApplyCoupon}
+                      disabled={!couponCode.trim()}
+                      sx={{
+                        height: "42px",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        borderTopLeftRadius: 0,
+                        borderBottomLeftRadius: 0,
+                        backgroundColor: "#1e40af",
+                        '&:hover': {
+                          backgroundColor: '#1c3d9a',
+                        },
+                      }}
+                    >
+                      Apply
+                    </Button>
                   </div>
-                )}
-                {couponDiscount > 0 && (
-                  <div className="flex justify-between text-sm md:text-base text-[#CBE600] font-semibold">
-                    <span>Coupon Discount</span>
-                    <span>-₹{Math.round(couponDiscount)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm md:text-base text-gray-700">
-                  <span>Shipping</span>
-                  {shipping === 0 ? (
-                    <span className="font-semibold text-[#CBE600]">FREE</span>
-                  ) : (
-                    <span className="font-semibold">₹{shipping}</span>
+
+                  {message && (
+                    <div className="flex items-center gap-2 text-green-600 text-sm font-medium bg-green-50 p-2 rounded-md">
+                      <VerifiedIcon fontSize="small" />
+                      <span>{message} (–₹{discountAmount})</span>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm font-medium bg-red-50 p-2 rounded-md">
+                      <ErrorOutlineIcon fontSize="small" />
+                      <span>{error}</span>
+                    </div>
                   )}
                 </div>
-                <div className="pt-3 md:pt-4 border-t-2 border-gray-200 flex justify-between text-lg md:text-xl font-bold text-[#222426]">
-                  <span>Total</span>
-                  <span className="text-[#8A6F4F]">₹{Math.round(total)}</span>
-                </div>
+
+                {/* Available Coupons List */}
+                {showAvailableCoupons && availableCoupons.length > 0 && (
+                  <div className="bg-gray-100 rounded-lg border border-gray-200 mt-4 p-4 space-y-3 max-h-64 overflow-y-auto">
+                    {availableCoupons.map((c) => (
+                      <div
+                        key={c._id}
+                        className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gray-200 pb-3 last:border-b-0"
+                      >
+                        <div className="flex flex-col gap-1">
+                          <p className="font-semibold text-sm uppercase text-gray-800">{c.code}</p>
+                          <p className="text-xs text-gray-600">
+                            {c.discountType === "flat"
+                              ? `Flat ₹${c.discountValue} off`
+                              : `${c.discountValue}% off up to ₹${c.maxDiscountAmount}`}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Min Order Amount: ₹{c.minOrderAmount}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Valid till:{" "}
+                            {new Date(c.expiresAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            marginTop: "0.5rem",
+                            minWidth: "80px",
+                            textTransform: "none",
+                            fontWeight: 600,
+                          }}
+                          onClick={() => handleApplyCouponFromList(c.code)}
+                        >
+                          Apply
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <button onClick={() => navigate("/checkout?step=2")} className="w-full py-3 md:py-4 px-4 md:px-6 bg-[#CBE600] text-white font-bold text-base md:text-lg rounded-xl hover:bg-[#DFF200] hover:text-black transition-all duration-300 shadow-lg hover:shadow-2xl hover:-translate-y-1 uppercase tracking-wide mb-4">
+              {/* Checkout Button */}
+              <Button
+                onClick={() => navigate("/checkout?step=2")}
+                variant="contained"
+                sx={{
+                  padding: ".8rem 2rem",
+                  marginTop: "1.5rem",
+                  width: "100%",
+                  backgroundColor: "#1e40af",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  '&:hover': {
+                    backgroundColor: '#1c3d9a',
+                  },
+                }}
+              >
                 Proceed to Checkout
-              </button>
-
-              <div className="flex items-center justify-center gap-2 text-xs md:text-sm text-gray-600">
-                <Lock className="w-4 h-4" />
-                <span>Secure Checkout</span>
-              </div>
-
-              <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200 space-y-3">
-                <div className="flex items-center gap-3 text-xs md:text-sm text-gray-700">
-                  <div className="w-8 md:w-10 h-8 md:h-10 bg-[#CBE600]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Truck className="w-4 md:w-5 h-4 md:h-5 text-[#8A6F4F]" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Free Shipping</p>
-                    <p className="text-xs text-gray-500">On orders over ₹999</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-xs md:text-sm text-gray-700">
-                  <div className="w-8 md:w-10 h-8 md:h-10 bg-[#CBE600]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Lock className="w-4 md:w-5 h-4 md:h-5 text-[#8A6F4F]" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Secure Payment</p>
-                    <p className="text-xs text-gray-500">100% protected</p>
-                  </div>
-                </div>
-              </div>
+              </Button>
             </div>
           </div>
         </div>
-
-        {/* Recommended Products — NO sample array. Only heading shown (ready to be populated by redux/backend later) */}
-        <div className="mt-12 md:mt-16">
-          <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#8A6F4F] mb-6 md:mb-8 text-center">
-            Complete Your Look
-          </h2>
-
-          {/* empty grid placeholder — keep layout intact but no sample products */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6">
-            {/* Intentionally left empty — populate from redux/backend later */}
-          </div>
+      ) : (
+        /* Empty Cart State */
+        <div className="flex flex-col justify-center items-center py-20 min-h-screen">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png"
+            alt="Empty Cart"
+            className="w-36 h-36 mb-6 opacity-60"
+          />
+          <p className="text-2xl font-bold text-gray-700 mb-2">
+            Your cart is empty
+          </p>
+          <p className="text-gray-500 mb-6">
+            Looks like you haven't added anything to your cart yet.
+          </p>
+          <Button
+            onClick={() => navigate("/")}
+            variant="contained"
+            sx={{
+              padding: "12px 32px",
+              backgroundColor: "#1e40af",
+              '&:hover': {
+                backgroundColor: '#1c3d9a',
+              },
+            }}
+          >
+            Continue Shopping
+          </Button>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
@@ -33,10 +34,15 @@ const userSchema = new mongoose.Schema({
   ], 
   paymentInformation: [
     {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "payment_information",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "payment_information",
     },
   ],
+  superCoins:{
+    type:Number,
+    default:0
+  },
+
   ratings: [
     {
       type: mongoose.Schema.Types.ObjectId,
