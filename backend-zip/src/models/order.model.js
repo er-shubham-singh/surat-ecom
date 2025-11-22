@@ -19,6 +19,10 @@ const orderSchema = new Schema({
   deliveryDate: {
     type: Date,
   },
+    statusUpdatedAt: {
+    type: Date,
+    default: Date.now,
+  },
   shippingAddress: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'addresses',
@@ -58,6 +62,43 @@ const orderSchema = new Schema({
   totalItem: {
     type: Number,
     required: true,
+  },
+  returnRequestedAt: {
+  type: Date,
+},
+  returnRejectedAt: {
+  type: Date,
+},
+returnReason: {
+  type: String,
+},
+returnDescription: String,
+returnImages: [String],
+adminNote: {
+  type: String,
+},
+returnTime:{
+  type:"String"
+},
+rejectionMessage: {
+  type: String,
+  default: "",
+},
+usedSuperCoins:{
+  type:Number,
+  default:0
+},
+earnedSuperCoins:{
+  type:Number,
+  default:0
+},
+  couponCode: {
+    type: String,
+    default: null,
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0,
   },
   createdAt: {
     type: Date,

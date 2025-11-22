@@ -15,12 +15,11 @@ import { getUser, login } from "../../redux/Auth/action";
 import axios from "axios";
 
 
-export default function LoginUserForm({ handleNext }) {
-  const navigate = useNavigate();
+export default function LoginUserForm({ switchTo, handleNext }) {  const navigate = useNavigate();
   const dispatch = useDispatch();
   const jwt = localStorage.getItem("jwt");
 
-  const { auth } = useSelector((store) => store);
+  const  auth  = useSelector((store) => store);
 
   const [openSnackBar, setOpenSnackBar] = useState(false);
   const [snackBarMessage, setSnackBarMessage] = useState("");
@@ -262,9 +261,19 @@ const handleResetPassword = async () => {
       <div className="flex justify-center flex-col items-center">
         <div className="py-3 flex items-center">
           <p className="m-0 p-0">Don't have an account?</p>
-          <Button onClick={() => navigate("/register")} className="ml-5" size="small">
-            Register
-          </Button>
+       <Button
+    onClick={() => {
+      if (typeof switchTo === "function") {
+        switchTo("register");
+      } else {
+        navigate("/register");
+      }
+    }}
+    className="ml-5"
+    size="small"
+  >
+    Register
+  </Button>
         </div>
       </div>
 

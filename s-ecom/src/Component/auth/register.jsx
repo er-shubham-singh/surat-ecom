@@ -14,12 +14,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import React from 'react'
 
-export default function RegisterUserForm() {
+export default function RegisterUserForm({ switchTo }) {
     const baseUrl = import.meta.env.VITE_React_BASE_API_URL;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { auth } = useSelector((store) => store);
+  const  {auth } = useSelector((store) => store);
 
   const [email, setEmail] = useState("");
   const [emailVerified, setEmailVerified] = useState(false);
@@ -265,9 +265,25 @@ const handleFormSubmit = async (e) => {
 
       <Box display="flex" justifyContent="center" mt={2}>
         <span>If you already have an account?</span>
-        <Button onClick={() => navigate("/login")} size="small">
-          Login
-        </Button>
+// inside RegisterUserForm component JSX near the bottom
+<Box display="flex" justifyContent="center" mt={2}>
+  <span>If you already have an account?</span>
+  <Button
+    onClick={() => {
+      if (typeof switchTo === "function") {
+        switchTo("login");
+      } else {
+        // fallback to navigate if component used outside modal
+        navigate("/login");
+      }
+    }}
+    size="small"
+  >
+    Login
+  </Button>
+</Box>
+
+
       </Box>
 
       <Snackbar
