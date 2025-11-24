@@ -548,6 +548,7 @@ const ProductPage = () => {
                 className="px-3 py-1 border rounded disabled:opacity-50"
               >
                 Next
+                
               </button>
             </div>
           </main>
