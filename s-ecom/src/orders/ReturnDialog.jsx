@@ -23,7 +23,7 @@ const reasons = [
   "Other",
 ];
 
-const ReturnDialog = ({ open, onClose, onConfirm }) => {
+const ReturnDialog  = ({ open, onClose, onConfirm }) => {
   const [reason, setReason] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
