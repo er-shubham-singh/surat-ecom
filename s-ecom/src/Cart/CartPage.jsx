@@ -1,4 +1,3 @@
-
 import Confetti from "react-confetti";
 import React, { useEffect, useState } from "react";
 import CartItem from "./CartItem";
@@ -6,20 +5,29 @@ import { Backdrop, Button, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getCart } from "../redux/Cart/Action";
-import RequireLogin from "../Component/auth/RequireLogin";
-import DiscountIcon from "@mui/icons-material/Discount";
-import VerifiedIcon from "@mui/icons-material/Verified";
+import RequireLogin from "../Component/Auth/RequireLogin";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { Box } from "@mui/material";
-import { applyCoupon, allCoupon, clearCouponState } from "../redux/Coupon/couponActions";
+import {
+  applyCoupon,
+  allCoupon,
+  clearCouponState,
+} from "../redux/Coupon/couponActions";
 
 // A custom hook to get the window size for the confetti
 const useWindowSize = () => {
   const getSize = () => ({
     width: window.innerWidth,
-    height: Math.max(window.innerHeight, document.documentElement.clientHeight, document.body.scrollHeight),
+    height: Math.max(
+      window.innerHeight,
+      document.documentElement.clientHeight,
+      document.body.scrollHeight
+    ),
   });
 
   const [windowSize, setWindowSize] = useState(getSize());
@@ -33,7 +41,6 @@ const useWindowSize = () => {
   return windowSize;
 };
 
-
 const CartPage = () => {
   const [couponCode, setCouponCode] = useState("");
   const [showAvailableCoupons, setShowAvailableCoupons] = useState(false);
@@ -43,7 +50,7 @@ const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { cart, auth, coupon } = useSelector((store) => store);
-  
+
   const availableCoupons = coupon?.allCoupons || [];
 
   const jwt = localStorage.getItem("jwt");
@@ -51,9 +58,6 @@ const CartPage = () => {
 
   const { discountAmount, message, error } = coupon;
 
-  // This useEffect will run only once when the component mounts.
-  // It dispatches an action to clear the coupon state in Redux,
-  // preventing the success message and confetti from showing on page refresh.
   useEffect(() => {
     dispatch(clearCouponState());
   }, [dispatch]);
@@ -65,19 +69,15 @@ const CartPage = () => {
     }
   }, [dispatch, jwt]);
 
-  // This useEffect now correctly handles the celebration when a coupon is applied.
-  // It depends on the Redux state, which is now clean on page load.
   useEffect(() => {
     if (message && !error) {
       setShowConfetti(true);
       const timer = setTimeout(() => {
         setShowConfetti(false);
-      }, 5000); // Confetti and message show for 5 seconds
-
+      }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [message, error, dispatch]);
-
+  }, [message, error]);
 
   const handleApplyCoupon = () => {
     if (!couponCode || !user || !user._id || !cart.cart?._id) return;
@@ -87,20 +87,19 @@ const CartPage = () => {
 
   const handleApplyCouponFromList = (code) => {
     setCouponCode(code);
-    dispatch(applyCoupon(code, user._id, cart.cart._id, cart.cart.totalDiscountedPrice));
+    dispatch(
+      applyCoupon(code, user._id, cart.cart._id, cart.cart.totalDiscountedPrice)
+    );
   };
-
 
   const toggleCoupons = () => {
     setShowAvailableCoupons((prev) => !prev);
   };
-  
-  // Renders a login requirement message if the user is not authenticated.
+
   if (!jwt) {
     return <RequireLogin message="Please log in to view your cart." />;
   }
 
-  // Renders a loading spinner while the cart data is being fetched.
   if (cart.loading) {
     return (
       <Backdrop
@@ -113,265 +112,427 @@ const CartPage = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 md:p-8 font-sans relative">
-      {/* Conditionally render confetti and celebration message */}
-{showConfetti && (
-  <>
-    <div className="fixed top-0 left-0 w-full h-full z-[9998] pointer-events-none">
-      <Confetti
-        width={width}
-        height={height}
-        numberOfPieces={width < 768 ? 100 : 300}
-        gravity={0.3}
-        recycle={false}
-      />
-    </div>
-
-<Box
-  sx={{
-    position: "fixed",
-    top: "1.5rem", // same as top-6
-    left: "50%",
-    transform: "translateX(-50%)",
-    bgcolor: "success.main", // MUI green from theme
-    color: "common.white",   // <-- This ensures the text is white
-    px: 3,
-    py: 1.5,
-    borderRadius: "12px",
-    boxShadow: 6,
-    fontSize: {
-      xs: "0.875rem",
-      sm: "1rem",
-      md: "1.125rem",
-    },
-    fontWeight: 600,
-    textAlign: "center",
-    zIndex: (theme) => theme.zIndex.modal + 2, // High z-index
-    width: {
-      xs: "92%",
-      sm: "auto",
-    },
-    maxWidth: 400,
-    animation: "bounce 1s infinite",
-    "@keyframes bounce": {
-      "0%, 100%": {
-        transform: "translateX(-50%) translateY(0)",
-      },
-      "50%": {
-        transform: "translateX(-50%) translateY(-8px)",
-      },
-    },
-  }}
->
-  🎉 Coupon Applied Successfully!
-</Box>
-
-  </>
-)}
-
-
-      {cart.cartItems?.length > 0 ? (
-        <div className="lg:grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cart Items Section */}
-          <div className="lg:col-span-2 space-y-4">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Shopping Cart ({cart.cart?.totalItem || 0})</h1>
-            {cart.cartItems.flat().map((item, i) =>
-              item ? (
-                <CartItem
-                  item={item}
-                  showButton={true}
-                  key={item._id || item.productId || i}
-                />
-              ) : null
-            )}
+    <div className="min-h-screen bg-[#FFFDF6] font-sans relative">
+      {/* Confetti & Success Message */}
+      {showConfetti && (
+        <>
+          <div className="fixed top-0 left-0 w-full h-full z-[9998] pointer-events-none">
+            <Confetti
+              width={width}
+              height={height}
+              numberOfPieces={width < 768 ? 100 : 300}
+              gravity={0.3}
+              recycle={false}
+            />
           </div>
 
-          {/* Price Summary Section */}
-          <div className="lg:col-span-1 mt-6 lg:mt-0">
-            <div className="sticky top-20 bg-white rounded-xl shadow-lg p-6">
-              <p className="text-lg font-bold text-gray-700 pb-4 border-b">PRICE DETAILS</p>
-              
-              <div className="space-y-4 font-medium text-gray-600 my-4">
-                <div className="flex justify-between items-center">
-                  <span>Price ({cart.cart?.totalItem || 0} items)</span>
-                  <span className="text-gray-800">₹{cart.cart?.totalPrice || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Discount</span>
-                  <span className="text-green-600 font-semibold">-₹{cart.cart?.discounte || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Delivery Charges</span>
-                  <span className="text-green-600 font-semibold">Free</span>
-                </div>
-                {couponCode && coupon?.difference > 0 && (
-                  <div className="flex justify-between items-center text-sm font-semibold text-green-700 bg-green-50 px-3 py-1 rounded">
-                    <span>Coupon Discount ({couponCode.toUpperCase()})</span>
-                    <span>-₹{coupon.difference}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center border-t pt-4 font-bold text-lg text-gray-800">
-                  <span>Total Amount</span>
-                  <span className="text-green-600">
-                    ₹
-                    {(cart.cart?.totalDiscountedPrice || 0) - (coupon?.difference || 0)}
-                  </span>
-                </div>
+          <Box
+            sx={{
+              position: "fixed",
+              top: "1.5rem",
+              left: "50%",
+              transform: "translateX(-50%)",
+              bgcolor: "#DFF200",
+              color: "#111111",
+              px: 4,
+              py: 2,
+              borderRadius: "16px",
+              boxShadow: "0 8px 32px rgba(223, 242, 0, 0.4)",
+              fontSize: { xs: "0.875rem", sm: "1rem", md: "1.125rem" },
+              fontWeight: 700,
+              textAlign: "center",
+              zIndex: 9999,
+              width: { xs: "92%", sm: "auto" },
+              maxWidth: 400,
+              border: "2px solid #CBE600",
+              animation: "bounce 1s infinite",
+              "@keyframes bounce": {
+                "0%, 100%": { transform: "translateX(-50%) translateY(0)" },
+                "50%": { transform: "translateX(-50%) translateY(-8px)" },
+              },
+            }}
+          >
+            🎉 Coupon Applied Successfully!
+          </Box>
+        </>
+      )}
+
+      {cart.cartItems?.length > 0 ? (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+          {/* Page Header */}
+          <div className="mb-6 lg:mb-8">
+            <h1 className="text-3xl lg:text-4xl font-bold text-[#111111] flex items-center gap-3">
+              <ShoppingCartOutlinedIcon
+                sx={{ fontSize: { xs: 32, lg: 40 }, color: "#111111" }}
+              />
+              Shopping Cart
+              <span className="ml-3 text-base lg:text-lg font-semibold text-[#111111]/60 bg-[#DFF200] px-4 py-1 rounded-full">
+                {cart.cart?.totalItem || 0}{" "}
+                {cart.cart?.totalItem === 1 ? "Item" : "Items"}
+              </span>
+            </h1>
+          </div>
+
+          <div className="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+            {/* Cart Items Section - 7 columns */}
+            <div className="lg:col-span-7 lg:min-h-screen lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:pr-4 scrollbar-thin scrollbar-thumb-[#CBE600] scrollbar-track-transparent">
+              <div className="space-y-4">
+                {cart.cartItems
+                  .flat()
+                  .map((item, i) =>
+                    item ? (
+                      <CartItem
+                        item={item}
+                        showButton={true}
+                        key={item._id || item.productId || i}
+                      />
+                    ) : null
+                  )}
               </div>
+            </div>
 
-              {/* Coupon Application Section */}
-              <div className="mt-6 border-t pt-6">
-                <div className="flex items-center justify-between text-blue-600 cursor-pointer" onClick={toggleCoupons}>
-                  <div className="flex items-center gap-2">
-                    <DiscountIcon />
-                    <p className="font-semibold">
-                      {showAvailableCoupons ? "Hide Coupons" : "View & Apply Coupons"}
-                    </p>
+            {/* Price Summary Section - 5 columns */}
+            <div className="lg:col-span-5 mt-8 lg:mt-0">
+              <div className="sticky top-6">
+                {/* Order Summary Card */}
+                <div className="bg-white rounded-2xl border-2 border-[#DFF200] shadow-lg overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-linear-to-r from-[#DFF200] to-[#CBE600] px-6 py-5 border-b-2 border-[#CBE600]">
+                    <h2 className="text-2xl font-bold text-[#111111] uppercase tracking-wide">
+                      Order Summary
+                    </h2>
                   </div>
-                  {showAvailableCoupons ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </div>
 
-                {/* Coupon Input */}
-                <div className="flex flex-col gap-3 mt-4">
-                  <div className="flex w-full">
-                    <input
-                      type="text"
-                      placeholder="Enter coupon code (e.g. FLUTEON100)"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      className="border-gray-300 border rounded-l-lg px-4 py-2 w-full text-sm focus:outline-blue-500"
-                    />
+                  <div className="p-6 space-y-6">
+                    {/* Price Breakdown */}
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center text-base">
+                        <span className="text-[#111111]/70 font-medium">
+                          Subtotal ({cart.cart?.totalItem || 0} items)
+                        </span>
+                        <span className="font-bold text-[#111111]">
+                          ₹{cart.cart?.totalPrice || 0}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center text-base">
+                        <span className="text-[#111111]/70 font-medium">
+                          Discount
+                        </span>
+                        <span className="text-green-600 font-bold">
+                          -₹{cart.cart?.discounte || 0}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center text-base">
+                        <span className="text-[#111111]/70 font-medium">
+                          Delivery
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <CheckCircleOutlineIcon
+                            sx={{ fontSize: 18, color: "#10B981" }}
+                          />
+                          <span className="text-green-600 font-bold uppercase text-sm">
+                            Free
+                          </span>
+                        </div>
+                      </div>
+
+                      {couponCode && coupon?.difference > 0 && (
+                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <LocalOfferIcon
+                                sx={{ fontSize: 20, color: "#059669" }}
+                              />
+                              <span className="text-green-800 font-bold text-sm">
+                                Coupon Applied: {couponCode.toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-green-700 font-bold text-lg">
+                              -₹{coupon.difference}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="border-t-2 border-[#DFF200] pt-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xl font-bold text-[#111111] uppercase">
+                            Total
+                          </span>
+                          <span className="text-3xl font-bold text-[#111111]">
+                            ₹
+                            {(cart.cart?.totalDiscountedPrice || 0) -
+                              (coupon?.difference || 0)}
+                          </span>
+                        </div>
+                        {(cart.cart?.discounte > 0 ||
+                          coupon?.difference > 0) && (
+                          <div className="flex justify-end">
+                            <div className="bg-[#DFF200] px-3 py-1 rounded-full">
+                              <p className="text-sm font-bold text-[#111111]">
+                                You saved ₹
+                                {(cart.cart?.discounte || 0) +
+                                  (coupon?.difference || 0)}
+                                ! 🎉
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Coupon Section */}
+                    <div className="border-t-2 border-[#DFF200] pt-6">
+                      <button
+                        onClick={toggleCoupons}
+                        className="w-full flex items-center justify-between bg-[#FFFDF6] hover:bg-[#DFF200]/20 border-2 border-[#DFF200] rounded-xl px-4 py-3 transition-all duration-300 group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <LocalOfferIcon
+                            sx={{ fontSize: 24, color: "#111111" }}
+                          />
+                          <span className="font-bold text-[#111111] uppercase text-sm">
+                            {showAvailableCoupons
+                              ? "Hide Coupons"
+                              : "Apply Coupon Code"}
+                          </span>
+                        </div>
+                        {showAvailableCoupons ? (
+                          <KeyboardArrowUpIcon
+                            sx={{ fontSize: 24, color: "#111111" }}
+                          />
+                        ) : (
+                          <KeyboardArrowDownIcon
+                            sx={{ fontSize: 24, color: "#111111" }}
+                          />
+                        )}
+                      </button>
+
+                      {/* Coupon Input */}
+                      <div className="mt-4 space-y-3">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="ENTER CODE"
+                            value={couponCode}
+                            onChange={(e) =>
+                              setCouponCode(e.target.value.toUpperCase())
+                            }
+                            className="flex-1 border-2 border-[#DFF200] bg-white rounded-xl px-4 py-3 text-sm font-semibold uppercase focus:outline-none focus:border-[#CBE600] focus:ring-2 focus:ring-[#DFF200]/30 transition-all placeholder:text-[#111111]/40"
+                          />
+                          <Button
+                            variant="contained"
+                            onClick={handleApplyCoupon}
+                            disabled={!couponCode.trim()}
+                            sx={{
+                              px: 4,
+                              py: 1.5,
+                              textTransform: "uppercase",
+                              fontWeight: 700,
+                              fontSize: "0.875rem",
+                              bgcolor: "#DFF200",
+                              color: "#111111",
+                              borderRadius: "12px",
+                              border: "2px solid #CBE600",
+                              "&:hover": {
+                                bgcolor: "#CBE600",
+                              },
+                              "&:disabled": {
+                                bgcolor: "#f5f5f5",
+                                color: "#999",
+                                border: "2px solid #e5e5e5",
+                              },
+                            }}
+                          >
+                            Apply
+                          </Button>
+                        </div>
+
+                        {message && (
+                          <div className="flex items-start gap-3 text-green-700 text-sm font-semibold bg-green-50 border-2 border-green-300 p-4 rounded-xl">
+                            <CheckCircleOutlineIcon
+                              sx={{ fontSize: 20, flexShrink: 0 }}
+                            />
+                            <span>
+                              {message} (Saved ₹{discountAmount})
+                            </span>
+                          </div>
+                        )}
+
+                        {error && (
+                          <div className="flex items-start gap-3 text-red-600 text-sm font-semibold bg-red-50 border-2 border-red-300 p-4 rounded-xl">
+                            <ErrorOutlineIcon
+                              sx={{ fontSize: 20, flexShrink: 0 }}
+                            />
+                            <span>{error}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Available Coupons */}
+                      {showAvailableCoupons && availableCoupons.length > 0 && (
+                        <div className="mt-4 bg-[#FFFDF6] rounded-xl border-2 border-[#DFF200] p-4 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-[#CBE600] scrollbar-track-transparent">
+                          <h3 className="text-sm font-bold uppercase tracking-wider text-[#111111] mb-4 flex items-center gap-2">
+                            <LocalOfferIcon sx={{ fontSize: 18 }} />
+                            Available Offers
+                          </h3>
+                          <div className="space-y-3">
+                            {availableCoupons.map((c) => (
+                              <div
+                                key={c._id}
+                                className="bg-white border-2 border-dashed border-[#DFF200] rounded-xl p-4 hover:border-[#CBE600] hover:shadow-md transition-all duration-300"
+                              >
+                                <div className="flex justify-between items-start gap-3">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <div className="bg-[#DFF200] px-3 py-1 rounded-lg">
+                                        <p className="font-bold text-[#111111] text-sm">
+                                          {c.code}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <p className="text-sm font-semibold text-[#111111] mb-1">
+                                      {c.discountType === "flat"
+                                        ? `Get ₹${c.discountValue} OFF`
+                                        : `Get ${c.discountValue}% OFF (up to ₹${c.maxDiscountAmount})`}
+                                    </p>
+                                    <p className="text-xs text-[#111111]/60 font-medium">
+                                      Min. order: ₹{c.minOrderAmount}
+                                    </p>
+                                    <p className="text-xs text-[#111111]/50 mt-1">
+                                      Valid till{" "}
+                                      {new Date(c.expiresAt).toLocaleDateString(
+                                        "en-IN",
+                                        {
+                                          day: "numeric",
+                                          month: "short",
+                                          year: "numeric",
+                                        }
+                                      )}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() =>
+                                      handleApplyCouponFromList(c.code)
+                                    }
+                                    sx={{
+                                      minWidth: "70px",
+                                      textTransform: "uppercase",
+                                      fontWeight: 700,
+                                      fontSize: "0.75rem",
+                                      borderColor: "#DFF200",
+                                      color: "#111111",
+                                      borderWidth: "2px",
+                                      borderRadius: "8px",
+                                      "&:hover": {
+                                        borderColor: "#CBE600",
+                                        bgcolor: "#DFF200",
+                                        borderWidth: "2px",
+                                      },
+                                    }}
+                                  >
+                                    Apply
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Checkout Button */}
                     <Button
+                      onClick={() => navigate("/checkout?step=2")}
                       variant="contained"
-                      onClick={handleApplyCoupon}
-                      disabled={!couponCode.trim()}
+                      fullWidth
                       sx={{
-                        height: "42px",
-                        textTransform: "none",
-                        fontWeight: 600,
-                        borderTopLeftRadius: 0,
-                        borderBottomLeftRadius: 0,
-                        backgroundColor: "#1e40af",
-                        '&:hover': {
-                          backgroundColor: '#1c3d9a',
+                        py: 2,
+                        fontSize: "1.125rem",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        borderRadius: "16px",
+                        bgcolor: "#DFF200",
+                        color: "#111111",
+                        border: "2px solid #CBE600",
+                        boxShadow: "0 8px 24px rgba(223, 242, 0, 0.3)",
+                        letterSpacing: "0.5px",
+                        "&:hover": {
+                          bgcolor: "#CBE600",
+                          boxShadow: "0 12px 32px rgba(223, 242, 0, 0.4)",
+                          transform: "translateY(-2px)",
                         },
+                        transition: "all 0.3s ease",
                       }}
                     >
-                      Apply
+                      Proceed to Checkout
                     </Button>
-                  </div>
 
-                  {message && (
-                    <div className="flex items-center gap-2 text-green-600 text-sm font-medium bg-green-50 p-2 rounded-md">
-                      <VerifiedIcon fontSize="small" />
-                      <span>{message} (–₹{discountAmount})</span>
-                    </div>
-                  )}
-
-                  {error && (
-                    <div className="flex items-center gap-2 text-red-600 text-sm font-medium bg-red-50 p-2 rounded-md">
-                      <ErrorOutlineIcon fontSize="small" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Available Coupons List */}
-                {showAvailableCoupons && availableCoupons.length > 0 && (
-                  <div className="bg-gray-100 rounded-lg border border-gray-200 mt-4 p-4 space-y-3 max-h-64 overflow-y-auto">
-                    {availableCoupons.map((c) => (
-                      <div
-                        key={c._id}
-                        className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gray-200 pb-3 last:border-b-0"
+                    <div className="flex items-center justify-center gap-2 text-xs text-[#111111]/60 font-medium pt-2">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
                       >
-                        <div className="flex flex-col gap-1">
-                          <p className="font-semibold text-sm uppercase text-gray-800">{c.code}</p>
-                          <p className="text-xs text-gray-600">
-                            {c.discountType === "flat"
-                              ? `Flat ₹${c.discountValue} off`
-                              : `${c.discountValue}% off up to ₹${c.maxDiscountAmount}`}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Min Order Amount: ₹{c.minOrderAmount}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            Valid till:{" "}
-                            {new Date(c.expiresAt).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            marginTop: "0.5rem",
-                            minWidth: "80px",
-                            textTransform: "none",
-                            fontWeight: 600,
-                          }}
-                          onClick={() => handleApplyCouponFromList(c.code)}
-                        >
-                          Apply
-                        </Button>
-                      </div>
-                    ))}
+                        <path
+                          fillRule="evenodd"
+                          d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span>Safe & Secure Payments</span>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
-
-              {/* Checkout Button */}
-              <Button
-                onClick={() => navigate("/checkout?step=2")}
-                variant="contained"
-                sx={{
-                  padding: ".8rem 2rem",
-                  marginTop: "1.5rem",
-                  width: "100%",
-                  backgroundColor: "#1e40af",
-                  fontWeight: "bold",
-                  fontSize: "1rem",
-                  textTransform: "none",
-                  borderRadius: "8px",
-                  '&:hover': {
-                    backgroundColor: '#1c3d9a',
-                  },
-                }}
-              >
-                Proceed to Checkout
-              </Button>
             </div>
           </div>
         </div>
       ) : (
         /* Empty Cart State */
-        <div className="flex flex-col justify-center items-center py-20 min-h-screen">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png"
-            alt="Empty Cart"
-            className="w-36 h-36 mb-6 opacity-60"
-          />
-          <p className="text-2xl font-bold text-gray-700 mb-2">
-            Your cart is empty
-          </p>
-          <p className="text-gray-500 mb-6">
-            Looks like you haven't added anything to your cart yet.
-          </p>
-          <Button
-            onClick={() => navigate("/")}
-            variant="contained"
-            sx={{
-              padding: "12px 32px",
-              backgroundColor: "#1e40af",
-              '&:hover': {
-                backgroundColor: '#1c3d9a',
-              },
-            }}
-          >
-            Continue Shopping
-          </Button>
+        <div className="flex flex-col justify-center items-center py-20 min-h-[70vh] px-4">
+          <div className="bg-white border-2 border-[#DFF200] rounded-3xl shadow-2xl p-12 text-center max-w-md">
+            <div className="w-32 h-32 mx-auto mb-6 bg-[#DFF200]/20 rounded-full flex items-center justify-center">
+              <ShoppingCartOutlinedIcon
+                sx={{ fontSize: 80, color: "#DFF200" }}
+              />
+            </div>
+            <h2 className="text-3xl font-bold text-[#111111] mb-3 uppercase">
+              Your Cart is Empty
+            </h2>
+            <p className="text-[#111111]/60 mb-8 text-lg font-medium">
+              Start adding items to your cart and make your shopping experience
+              amazing!
+            </p>
+            <Button
+              onClick={() => navigate("/")}
+              variant="contained"
+              size="large"
+              sx={{
+                px: 6,
+                py: 2,
+                fontSize: "1rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                borderRadius: "12px",
+                bgcolor: "#DFF200",
+                color: "#111111",
+                border: "2px solid #CBE600",
+                "&:hover": {
+                  bgcolor: "#CBE600",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 24px rgba(223, 242, 0, 0.4)",
+                },
+                transition: "all 0.3s ease",
+              }}
+            >
+              Start Shopping
+            </Button>
+          </div>
         </div>
       )}
     </div>
