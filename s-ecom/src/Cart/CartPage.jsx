@@ -5,7 +5,7 @@ import { Backdrop, Button, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getCart } from "../redux/Cart/Action";
-import RequireLogin from "../Component/Auth/RequireLogin";
+import RequireLogin from "../Component/auth/RequireLogin";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
