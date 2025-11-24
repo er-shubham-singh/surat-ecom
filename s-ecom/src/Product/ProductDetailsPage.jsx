@@ -14,6 +14,7 @@ import { findProductById } from "../redux/product/action";
 import { addItemToCart, getCart } from "../redux/Cart/Action";
 import { getAllReviews, getRatingSummary } from "../redux/Review/Action";
 
+
 const ProductDetailsPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
