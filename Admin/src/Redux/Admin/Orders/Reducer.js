@@ -14,17 +14,29 @@ import {
   GET_ORDERS_FAILURE,
   GET_ORDERS_REQUEST,
   GET_ORDERS_SUCCESS,
+  OUT_FOR_DELIVERY_ORDER_FAILURE,
+  OUT_FOR_DELIVERY_ORDER_REQUEST,
+  OUT_FOR_DELIVERY_ORDER_SUCCESS,
   PLACED_ORDER_FAILURE,
   PLACED_ORDER_REQUEST,
   PLACED_ORDER_SUCCESS,
   SHIP_ORDER_FAILURE,
   SHIP_ORDER_REQUEST,
   SHIP_ORDER_SUCCESS,
+    RETURNED_ORDER_REQUEST,
+  RETURNED_ORDER_SUCCESS,
+  RETURNED_ORDER_FAILURE,
+    DASHBOARD_OVERVIEW_REQUEST,
+  DASHBOARD_OVERVIEW_SUCCESS,
+  DASHBOARD_OVERVIEW_FAILURE,
 } from "./ActionType";
 
 const initialState = {
   loading: false,
   orders: [],
+  overview: {},
+  currentPage: 1,
+  totalPages: 1,
   error: "",
 };
 
@@ -35,12 +47,22 @@ const adminOrderReducer = (state = initialState, action) => {
         ...state,
         loading: true,
       };
+    // case GET_ORDERS_SUCCESS:
+    //   return {
+    //     loading: false,
+    //     orders: action.payload,
+    //     error: "",
+    //   };
     case GET_ORDERS_SUCCESS:
-      return {
-        loading: false,
-        orders: action.payload,
-        error: "",
-      };
+  return {
+    ...state,
+    loading: false,
+    orders: action.payload.content, // 🟢 the paginated orders array
+    totalPages: action.payload.totalPages, // 🟢 total pages returned from backend
+    currentPage: action.payload.currentPage, // 🟢 current page
+    error: "",
+  };
+
     case GET_ORDERS_FAILURE:
       return {
         loading: false,
@@ -115,6 +137,42 @@ const adminOrderReducer = (state = initialState, action) => {
         isLoading: false,
         error: action.payload,
       };
+      case OUT_FOR_DELIVERY_ORDER_REQUEST:
+  return { ...state, loading: true };
+
+case OUT_FOR_DELIVERY_ORDER_SUCCESS:
+  return {
+    ...state,
+    loading: false,
+    orders: state.orders.map((order) =>
+      order._id === action.payload._id ? action.payload : order
+    ),
+  };
+
+case OUT_FOR_DELIVERY_ORDER_FAILURE:
+  return { ...state, loading: false, error: action.payload };
+      case RETURNED_ORDER_REQUEST:
+      return { ...state, loading: true };
+
+    case RETURNED_ORDER_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        orders: state.orders.map((order) =>
+          order._id === action.payload._id ? action.payload : order
+        ),
+      };
+
+    case RETURNED_ORDER_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+          case DASHBOARD_OVERVIEW_REQUEST:
+      return { ...state, loading: true, error: null };
+
+    case DASHBOARD_OVERVIEW_SUCCESS:
+      return { ...state, loading: false, overview: action.payload };
+
+    case DASHBOARD_OVERVIEW_FAILURE:
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }

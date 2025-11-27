@@ -41,6 +41,9 @@ const ratingRouter=require("./routes/rating.routes.js");
 app.use("/api/ratings",ratingRouter);
 
 
+const userQueryRoute=require("./routes/userQueryRoute.js");
+
+app.use("/api/user",userQueryRoute);
 
 // for search 
 
@@ -48,5 +51,11 @@ app.use("/api/ratings",ratingRouter);
 // admin routes handler
 const adminOrderRoutes=require("./routes/adminOrder.routes.js");
 app.use("/api/admin/orders",adminOrderRoutes);
+
+const couponRoutes = require("../src/routes/coupon.routes.js")
+app.use("/api/coupons", couponRoutes);
+
+const chatRoutes = require("../src/routes/chatRoute.js")
+app.use("/api",chatRoutes)
 
 module.exports={app};

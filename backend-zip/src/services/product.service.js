@@ -46,8 +46,8 @@ const Product = require("../models/product.model");
 
 
 
-console.log("cloudinary object", cloudinary); 
-console.log("cloudinary uploader available?", !!cloudinary.uploader);
+// console.log("cloudinary object", cloudinary); 
+// console.log("cloudinary uploader available?", !!cloudinary.uploader);
 
 
 

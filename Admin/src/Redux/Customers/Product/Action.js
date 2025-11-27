@@ -23,7 +23,7 @@ import {
   SEARCH_PRODUCTS_SUCCESS,
   SEARCH_PRODUCTS_FAILURE,
 } from './ActionType';
-import api from "../../../Config/api";
+import api, {API_BASE_URL} from "../../../Config/api";
 
 export const findProducts = (reqData) => async (dispatch) => {
   try {
@@ -124,36 +124,64 @@ export const createProduct = (formData) => async (dispatch) => {
   }
 };
 
-export const updateProduct = (formData, productId) => async (dispatch) => {
+
+// Redux action (fix)
+export const updateProduct = (payload) => async (dispatch) => {
   try {
+    console.log("data in redux for update..", payload);
+
     dispatch({ type: UPDATE_PRODUCT_REQUEST });
 
-    const token = localStorage.getItem("jwt") || null;
-
-    const { data } = await api.put(
-      `/api/admin/products/${productId}`,
-      formData,
-      {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          "Content-Type": "multipart/form-data",
-        },
+    // If payload is FormData, read productId using .get()
+    let productId;
+    if (payload instanceof FormData) {
+      // Debug: log FormData entries so you can see what's inside
+      for (const pair of payload.entries()) {
+        console.log("FormData entry:", pair[0], pair[1]);
       }
-    );
+      productId = payload.get("productId");
+    } else {
+      productId = payload.productId || payload._id || payload.id;
+    }
 
-    dispatch({ type: UPDATE_PRODUCT_SUCCESS, payload: data });
+    if (!productId) {
+      throw new Error("Missing productId in payload (updateProduct)");
+    }
+
+    // Build URL with encoded id
+    const url = `${API_BASE_URL}/api/admin/products/${encodeURIComponent(productId)}`;
+
+    // If payload is FormData, let axios set Content-Type (multipart boundary)
+    // but ensure Authorization header is present if required.
+    const config = {
+      headers: {
+        ...(localStorage.getItem("jwt") ? { Authorization: `Bearer ${localStorage.getItem("jwt")}` } : {}),
+        // Do NOT set 'Content-Type' manually to a string with boundary —
+        // axios/browser will set it automatically for FormData.
+      },
+    };
+
+    // Use your `api` axios instance if it doesn't force application/json for all requests.
+    // If api sets default content-type = application/json globally, use axios directly:
+    // const { data } = await axios.put(url, payload, config);
+
+    const { data } = await api.put(url, payload, config);
+
     console.log("update product ", data);
-    return data;
+
+    dispatch({
+      type: UPDATE_PRODUCT_SUCCESS,
+      payload: data,
+    });
   } catch (error) {
-    console.error("Update product error:", error.response?.data || error.message);
+    console.error("updateProduct error:", error);
     dispatch({
       type: UPDATE_PRODUCT_FAILURE,
       payload:
-        error.response && error.response.data.message
+        error.response && error.response.data && error.response.data.message
           ? error.response.data.message
-          : error.message,
+          : error.message || "Update failed",
     });
-    throw error;
   }
 };
 

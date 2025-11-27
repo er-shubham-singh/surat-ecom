@@ -114,6 +114,12 @@ const ProductsTable = () => {
     }
   };
 
+
+
+const handleUpdateProduct = (product)=>{
+  navigate("/add-product", {state:{product}})
+}
+
   return (
     <Box width={"100%"}>
       <Card className="p-3">
@@ -196,7 +202,9 @@ const ProductsTable = () => {
                 <TableCell sx={{ textAlign: "center" }}>Category</TableCell>
                 <TableCell sx={{ textAlign: "center" }}>Price</TableCell>
                 <TableCell sx={{ textAlign: "center" }}>Quantity</TableCell>
-                <TableCell sx={{ textAlign: "center" }}>Delete</TableCell>
+<TableCell sx={{ textAlign: "center" }}>Update</TableCell>
+<TableCell sx={{ textAlign: "center" }}>Delete</TableCell>
+
               </TableRow>
             </TableHead>
             <TableBody>
@@ -235,9 +243,14 @@ const ProductsTable = () => {
                     <TableCell sx={{ textAlign: "center" }}>{item.discountedPrice ?? item.price}</TableCell>
                     <TableCell sx={{ textAlign: "center" }}>{item.quantity}</TableCell>
 
-                    <TableCell sx={{ textAlign: "center" }}>
-                      <Button variant="text" onClick={() => handleDeleteProduct(item._id)}>Delete</Button>
-                    </TableCell>
+<TableCell sx={{ textAlign: "center" }}>
+  <Button variant="text" onClick={() => handleUpdateProduct(item)}>Update</Button>
+</TableCell>
+
+<TableCell sx={{ textAlign: "center" }}>
+  <Button variant="text" onClick={() => handleDeleteProduct(item._id)}>Delete</Button>
+</TableCell>
+
                   </TableRow>
                 ))
               )}

@@ -4,7 +4,7 @@ const router = express.Router();
 const ratingController = require("../services/rating.service.js");
 
 router.get("/create",authenticate,ratingController.createRating);
-router.put("/product/:productId",authenticate,ratingController.getProductsRating);
+router.put("/product/:productId",ratingController.getProductsRating);
 
 
 module.exports=router;

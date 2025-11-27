@@ -1,4 +1,5 @@
 const paymentService=require("../services/payment.service.js")
+const PaymentInformation = require("../models/payment.information.js");
 
 const createPaymentLink=async(req,res)=>{
 
@@ -21,5 +22,17 @@ const updatePaymentInformation=async(req,res)=>{
     }
 
 }
+const getUserPaymentHistory = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const orderId = req.query.orderId || null;
 
-module.exports={createPaymentLink,updatePaymentInformation}
+    const history = await paymentService.getUserPaymentHistory(userId, orderId); // 👈 correct
+    return res.status(200).json(history);
+  } catch (error) {
+    console.error("Payment history controller error:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports={createPaymentLink,updatePaymentInformation, getUserPaymentHistory,}

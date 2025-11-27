@@ -11,6 +11,7 @@ import Order from "./orders/Order";
 import OrderDetails from "./orders/OrderDetails";
 import Checkout from "./Checkout/Checkout";
 import PaymentSuccess from "./paymentSuccess/PaymentSuccess";
+import RateProduct from "./ReviewProduct/RateProduct";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -31,7 +32,7 @@ function App() {
 
         <Route path="/cart" element={<CartPage />} />
                 <Route path="/payment/:orderId" element={<PaymentSuccess />}></Route>
-
+<Route path="/account/rate/:productId" element={<RateProduct />}></Route>
      </Routes>
      <Footer />
     </>

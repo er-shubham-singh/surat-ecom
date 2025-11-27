@@ -3,7 +3,7 @@ import { Search, Bell, Mail, User } from "lucide-react";
 
 const Topbar = () => {
   return (
-    <header className="h-[65px] bg-gray-900 border-b border-gray-700 px-6 flex items-center justify-between">
+    <header className="h-[65px] bg-white border-b border-gray-700 px-6 flex items-center justify-between">
       {/* Left Side - Logo */}
       <div className="flex items-center gap-4">
         <div

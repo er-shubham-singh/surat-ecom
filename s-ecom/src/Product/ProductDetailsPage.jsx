@@ -6,13 +6,14 @@ import { useDispatch, useSelector } from "react-redux";
 import {jwtDecode} from "jwt-decode";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
-import { Box, Grid, LinearProgress, Rating, Button, IconButton, Tooltip, Snackbar, Alert } from "@mui/material";
+import { Typography,Stack,Avatar, Box, Grid, LinearProgress, Rating, Button, IconButton, Tooltip, Snackbar, Alert } from "@mui/material";
 import { RadioGroup } from "@headlessui/react";
 
 // <-- adjust these paths to your project structure if necessary
 import { findProductById } from "../redux/product/action";
 import { addItemToCart, getCart } from "../redux/Cart/Action";
 import { getAllReviews, getRatingSummary } from "../redux/Review/Action";
+import ProductReviewCard from "./ProductReviewCard";
 
 
 const ProductDetailsPage = () => {
@@ -24,7 +25,7 @@ const ProductDetailsPage = () => {
   // redux slices (expected shapes like in your other components)
   const { customersProduct, review } = useSelector((s) => s);
   const product = customersProduct?.product || {};
-
+console.log("product details....", review)
   // local UI state (kept similar to reference)
   const [loginAlert, setLoginAlert] = useState(false);
   const [sizeChart, setSizeChart] = useState([]);
@@ -40,8 +41,23 @@ const ProductDetailsPage = () => {
   const [isAdding, setIsAdding] = useState(false);
 
   const jwt = typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
-  const reviewsList = Array.isArray(review?.reviews?.reviews) ? review.reviews.reviews : [];
-  const ratingSummary = review?.ratingSummary || {};
+// Derive reviews array (backend returns review.reviews.reviews in your console)
+const reviewsList =
+  // shape: review.reviews.reviews (your console output)
+  Array.isArray(review?.reviews?.reviews)
+    ? review.reviews.reviews
+    // shape: review.reviews (sometimes backend returns array directly)
+    : Array.isArray(review?.reviews)
+      ? review.reviews
+      : [];
+
+// ratingSummary sits under review.reviews.ratingSummary (per console)
+const ratingSummary =
+  review?.reviews?.ratingSummary ||
+  review?.ratingSummary ||
+  review?.ratings?.ratingSummary ||
+  {};
+
 
   // images array (fallbacks)
   const productImages = Array.isArray(product?.imageUrl)
@@ -174,8 +190,8 @@ const handleSubmit = async (e) => {
   };
 
   // helper to render stars similar to reference (uses average from ratingSummary if present)
-  const renderStars = (ratingVal = 0) => {
-    const avg = ratingSummary?.averageRating || ratingVal || 0;
+const renderStars = (ratingVal = 0) => {
+  const avg = ratingSummary?.averageRating || ratingVal || 0;
     const rounded = Math.round(avg || 0);
     return (
       <div className="flex gap-1">
@@ -498,100 +514,118 @@ const handleSubmit = async (e) => {
             </div>
           )}
 
-          {activeTab === "reviews" && (
-            <div className="space-y-4 sm:space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-4 sm:mb-6">
-                <div>
-                  <div className="flex items-center gap-3 sm:gap-4 mb-2">
-                    <span className="text-3xl sm:text-4xl font-bold text-[#8A6F4F]">{(ratingSummary.averageRating || 0).toFixed(1)}</span>
-                    <div>
-                      {renderStars(ratingSummary.averageRating)}
-                      <p className="text-xs sm:text-sm text-gray-600 mt-1">Based on {ratingSummary.totalRatings || 0} reviews</p>
-                    </div>
-                  </div>
-                </div>
-                <button className="px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-[#8A6F4F] text-[#8A6F4F] rounded-lg hover:bg-[#8A6F4F] hover:text-white transition-all duration-300 font-semibold text-sm sm:text-base w-full sm:w-auto">
-                  Write a Review
-                </button>
-              </div>
+{activeTab === "reviews" && (
+  <Box className="space-y-4 sm:space-y-6">
+    {/* Header: average + CTA */}
+    <Box display="flex" flexDirection={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" gap={2}>
+      <Box display="flex" alignItems="center" gap={2}>
+        <Typography variant="h3" component="span" sx={{ color: "#8A6F4F", fontWeight: 700 }}>
+          {(ratingSummary.averageRating || 0).toFixed(1)}
+        </Typography>
+        <Box>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Rating value={ratingSummary.averageRating || 0} precision={0.5} readOnly />
+            <Typography variant="body2" color="text.secondary">
+              ({ratingSummary.totalRatings || 0} reviews)
+            </Typography>
+          </Box>
+          <Typography variant="caption" color="text.secondary">
+            Overall customer rating
+          </Typography>
+        </Box>
+      </Box>
 
-              <div className="border rounded-lg p-5">
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={7}>
-                    <div className="space-y-5">
-                      {(showAll ? reviewsList : reviewsList.slice(0, 5)).length > 0 ? (
-                        (showAll ? reviewsList : reviewsList.slice(0, 5)).map((r, i) => (
-                          <div key={r._id || r.id || i} className="border-b border-gray-200 pb-4 sm:pb-6 last:border-0">
-                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-0 mb-2 sm:mb-3">
-                              <div>
-                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                                  <span className="font-semibold text-[#222426] text-sm sm:text-base">{r.author || r.name || "User"}</span>
-                                  {r.verified && <span className="px-2 py-1 bg-[#CBE600]/10 text-[#8A6F4F] text-xs font-semibold rounded">Verified Purchase</span>}
-                                </div>
-                                <div className="mb-2">{renderStars(r.rating)}</div>
-                              </div>
-                              <span className="text-xs sm:text-sm text-gray-500">{new Date(r.date || r.createdAt || Date.now()).toLocaleDateString()}</span>
-                            </div>
-                            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{r.comment || r.text}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-gray-500">No reviews available.</p>
-                      )}
+      <Button
+        variant="outlined"
+        sx={{
+          borderColor: "#8A6F4F",
+          color: "#8A6F4F",
+          '&:hover': { backgroundColor: "#8A6F4F", color: "#fff" }
+        }}
+        onClick={() => {
+          // open write-review modal / route — replace with your handler
+          console.log("Write review clicked");
+        }}
+      >
+        Write a review
+      </Button>
+    </Box>
 
-                      {reviewsList.length > 5 && (
-                        <div className="pt-4 text-center">
-                          <button onClick={() => setShowAll(!showAll)} className="text-indigo-600 font-medium text-sm hover:underline">
-                            {showAll ? "Show Less Reviews" : "Show More Reviews"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </Grid>
+    {/* Main content: reviews list + ratings breakdown */}
+    <Box className="border rounded-lg p-5" sx={{ backgroundColor: "#fff" }}>
+      <Grid container spacing={3}>
+        {/* Reviews list */}
+        <Grid item xs={12} md={7}>
+          <Stack spacing={3}>
+            { (showAll ? reviewsList : reviewsList.slice(0, 5)).length > 0 ? (
+              (showAll ? reviewsList : reviewsList.slice(0, 5)).map((r, i) => (
+                <ProductReviewCard key={r._id || r.id || i} item={r} />
+              ))
+            ) : (
+              <Typography color="text.secondary">No reviews available.</Typography>
+            )}
 
-                  <Grid item xs={12} md={5}>
-                    <h1 className="text-xl font-semibold pb-1">Product Ratings</h1>
-                    {!ratingSummary || ratingSummary.totalRatings === 0 ? (
-                      <p className="text-sm text-gray-400">No ratings yet.</p>
-                    ) : (
-                      <>
-                        <div className="flex items-center space-x-3 pb-6">
-                          <Rating name="read-only" value={ratingSummary.averageRating || 0} precision={0.5} readOnly />
-                          <p className="text-sm text-gray-500">{ratingSummary.totalRatings} Ratings</p>
-                        </div>
+            {reviewsList.length > 5 && (
+              <Box textAlign="center" pt={2}>
+                <Button variant="text" onClick={() => setShowAll(!showAll)}>
+                  {showAll ? "Show less reviews" : `Show more reviews (${reviewsList.length - 5} more)`}
+                </Button>
+              </Box>
+            )}
+          </Stack>
+        </Grid>
 
-                        {[
-                          { label: "Excellent", rating: 5, color: "#4caf50" },
-                          { label: "Very Good", rating: 4, color: "#8bc34a" },
-                          { label: "Good", rating: 3, color: "#ffc107" },
-                          { label: "Average", rating: 2, color: "#ff9800" },
-                          { label: "Poor", rating: 1, color: "#f44336" }
-                        ].map((bar, idx) => {
-                          const count = ratingSummary.counts?.[bar.rating] || 0;
-                          const percentage = ratingSummary.totalRatings ? (count / ratingSummary.totalRatings) * 100 : 0;
-                          return (
-                            <Box key={idx} mb={2}>
-                              <Grid container alignItems="center" spacing={1}>
-                                <Grid item xs={4} sm={3}>
-                                  <p className="text-sm">{bar.label}</p>
-                                </Grid>
-                                <Grid item xs={6} sm={7}>
-                                  <LinearProgress variant="determinate" value={percentage} sx={{ bgcolor: "#e0e0e0", borderRadius: 4, height: 7, "& .MuiLinearProgress-bar": { backgroundColor: bar.color } }} />
-                                </Grid>
-                                <Grid item xs={2}>
-                                  <p className="text-sm text-gray-400">{count}</p>
-                                </Grid>
-                              </Grid>
-                            </Box>
-                          );
-                        })}
-                      </>
-                    )}
-                  </Grid>
-                </Grid>
-              </div>
-            </div>
+        {/* Ratings distribution */}
+        <Grid item xs={12} md={5}>
+          <Typography variant="h6" gutterBottom>Product Ratings</Typography>
+
+          {(!ratingSummary || ratingSummary.totalRatings === 0) ? (
+            <Typography color="text.secondary">No ratings yet.</Typography>
+          ) : (
+            <>
+              <Box display="flex" alignItems="center" gap={2} mb={2}>
+                <Rating value={ratingSummary.averageRating || 0} precision={0.5} readOnly />
+                <Typography variant="body2" color="text.secondary">
+                  {ratingSummary.totalRatings} rating{ratingSummary.totalRatings > 1 ? "s" : ""}
+                </Typography>
+              </Box>
+
+              {/* bars */}
+              {[
+                { label: "Excellent", star: 5, color: "#4caf50" },
+                { label: "Very Good", star: 4, color: "#8bc34a" },
+                { label: "Good", star: 3, color: "#ffc107" },
+                { label: "Average", star: 2, color: "#ff9800" },
+                { label: "Poor", star: 1, color: "#f44336" }
+              ].map((bar, idx) => {
+                const count = ratingSummary.counts?.[bar.star] || 0;
+                const percentage = ratingSummary.totalRatings ? (count / ratingSummary.totalRatings) * 100 : 0;
+                return (
+                  <Box key={idx} mb={2}>
+                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                      <Typography variant="body2">{bar.label}</Typography>
+                      <Typography variant="caption" color="text.secondary">{count}</Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={percentage}
+                      sx={{
+                        height: 8,
+                        borderRadius: 2,
+                        '& .MuiLinearProgress-bar': { backgroundColor: bar.color }
+                      }}
+                    />
+                  </Box>
+                );
+              })}
+            </>
           )}
+        </Grid>
+      </Grid>
+    </Box>
+  </Box>
+)}
+
         </div>
 
         {/* Related products */}

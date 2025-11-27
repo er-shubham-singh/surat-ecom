@@ -12,6 +12,7 @@ const AddProductForm = () => {
   const dispatch = useDispatch();
   // If coming from update page, product is passed through location.state.product
   const productToUpdate = location?.state?.product || null;
+  console.log("product to updarte.....", productToUpdate)
 
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [images, setImages] = useState([]); // File objects to send
@@ -38,13 +39,13 @@ const AddProductForm = () => {
     freeSize: "",
   });
 
+
+
   // Populate form if editing
   useEffect(() => {
     if (!productToUpdate) return;
-
     // map product fields to our form naming
     const {
-      _id,
       brand,
       title,
       color,
@@ -68,7 +69,7 @@ const AddProductForm = () => {
 
     setFormData((p) => ({
       ...p,
-      _id,
+      _id:productToUpdate._id,
       brand: brand || "",
       title: title || "",
       color: Array.isArray(color) ? color[0] : color || "",
@@ -87,31 +88,7 @@ const AddProductForm = () => {
     }
   }, [productToUpdate]);
 
-  const isEditing = !!formData._id;
-
-  function findCategoryPath(value) {
-    if (!value || typeof categoryHierarchy === "undefined") {
-      return { topLevelCategory: "", secondLevelCategory: "" };
-    }
-    for (const top in categoryHierarchy) {
-      for (const second in categoryHierarchy[top]) {
-        const thirdOptions = categoryHierarchy[top][second];
-        for (const option of thirdOptions) {
-          // option may be string or object { value, label }
-          const optValue = typeof option === "string" ? option : option.value;
-          if (optValue === value) {
-            return {
-              topLevelCategory: top,
-              secondLevelCategory: second,
-            };
-          }
-        }
-      }
-    }
-    return { topLevelCategory: "", secondLevelCategory: "" };
-  }
-
-  // Controlled inputs handler
+    // Controlled inputs handler
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "topLevelCategory") {
@@ -142,143 +119,116 @@ const handleFileChange = (e) => {
   });
 };
 
+  const isEditing = !!formData._id;
+console.log("is editiing id ....",formData._id)
+  function findCategoryPath(value) {
+    if (!value || typeof categoryHierarchy === "undefined") {
+      return { topLevelCategory: "", secondLevelCategory: "" };
+    }
+    for (const top in categoryHierarchy) {
+      for (const second in categoryHierarchy[top]) {
+        const thirdOptions = categoryHierarchy[top][second];
+        for (const option of thirdOptions) {
+          // option may be string or object { value, label }
+          const optValue = typeof option === "string" ? option : option.value;
+          if (optValue === value) {
+            return {
+              topLevelCategory: top,
+              secondLevelCategory: second,
+            };
+          }
+        }
+      }
+    }
+    return { topLevelCategory: "", secondLevelCategory: "" };
+  }
+
+
+
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+
   try {
-    // --- prepare files ---
-    const filesToSend = (Array.isArray(images) && images.length > 0)
-      ? images
-      : (Array.isArray(selectedFiles) ? selectedFiles : []);
-
-    // validation: require images for create
-    if ((!filesToSend || filesToSend.length === 0) && (!isEditing || (isEditing && (!previewImages || previewImages.length === 0)))) {
-      console.error("No files to upload");
-      setSuccess(false);
-      setSuccessMessage("Please choose at least one image.");
-      return;
-    }
-
-    // --- build FormData ---
+    // Build FormData exactly like your original simple version
     const payload = new FormData();
 
-    const keysToAppend = [
-      "brand", "title", "color", "price", "discountedPrice", "discountPercentage",
-      "quantity", "description", "topLevelCategory", "secondLevelCategory",
-      "thirdLevelCategory", "freeSize"
-    ];
-    keysToAppend.forEach(k => {
-      const val = formData[k] !== undefined && formData[k] !== null ? formData[k] : "";
-      payload.append(k, String(val));
-    });
+    // Append all keys from formData; stringify 'size'
+    for (let key in formData) {
+      if (key === "size") {
+        payload.append("size", JSON.stringify(formData.size || []));
+      } else {
+        // ensure undefined/null become empty string to avoid "undefined" text
+        payload.append(key, formData[key] !== undefined && formData[key] !== null ? formData[key] : "");
+      }
+    }
 
-    payload.set("size", JSON.stringify(formData.size || [])); // sizes as JSON string
-
-    // append files or existing urls
-    if (filesToSend && filesToSend.length > 0) {
-      filesToSend.slice(0, 4).forEach((file, idx) => {
-        // ensure file is a File instance; fallback: skip if not
-        if (file instanceof File || file instanceof Blob) {
-          payload.append("images", file, file.name || `image-${idx}.jpg`);
-        } else {
-          console.warn("Skipping non-File entry while appending:", file);
-        }
+    // Append images (files) that user selected (images state)
+    if (Array.isArray(images) && images.length > 0) {
+      images.forEach((img) => {
+        // img should be a File/Blob
+        payload.append("images", img);
       });
+    } else if (Array.isArray(selectedFiles) && selectedFiles.length > 0) {
+      // fallback: if you used selectedFiles
+      selectedFiles.forEach((img) => payload.append("images", img));
     } else {
-      // editing and no new files -> send existing image URLs for backend to keep
+      // No new files: send existing preview URLs so backend can keep them
       payload.append("existingImageUrls", JSON.stringify(previewImages || []));
     }
 
-    if (isEditing && formData._id) payload.append("productId", formData._id);
-
-    // --- debug print FormData contents (file names & fields) ---
-    console.log("=== FormData entries (begin) ===");
-    for (const pair of payload.entries()) {
-      if (pair[1] instanceof File || (typeof File !== "undefined" && pair[1] instanceof File)) {
-        console.log("FormData file:", pair[0], pair[1].name, pair[1].size);
-      } else {
-        // For long strings (existingImageUrls) shorten log
-        const v = typeof pair[1] === "string" && pair[1].length > 200 ? pair[1].slice(0,200) + "..." : pair[1];
-        console.log("FormData field:", pair[0], v);
-      }
+    // If editing, attach productId (backend / Redux expects this)
+    if (isEditing && formData && formData._id) {
+      payload.append("productId", formData._id);
     }
-    console.log("=== FormData entries (end) ===");
 
-    // --- try dispatching thunk first (preferred) ---
-    try {
-      // dispatch should accept FormData and return created product or throw on error
-      const actionResult = await dispatch(isEditing ? updateProduct(payload) : createProduct(payload));
-      console.log("Dispatch result:", actionResult);
-
-      // if dispatch returned a falsy result or a plain action object without uploaded data, throw to fallback
-      if (!actionResult || (actionResult && typeof actionResult === "object" && !actionResult?.id && !actionResult?._id && !actionResult?.imageUrl)) {
-        // not necessarily an error, but signal fallback to direct upload for debugging
-        console.warn("Dispatch did not return expected product object — falling back to direct upload for debugging.");
-        throw new Error("dispatch-no-product");
-      }
-
-      // success via dispatch
+    // Dispatch update or create just like your simple code
+    if (isEditing) {
+      // update path — reducer / action expects FormData
+      await dispatch(updateProduct(payload));
       setSuccess(true);
-      setSuccessMessage(isEditing ? "Product updated successfully (via dispatch)" : "Product created successfully (via dispatch)");
-      if (!isEditing) {
-        // reset form
-        setFormData({
-          _id: null, images: "", brand: "", title: "", color: "", price: "", discountedPrice: "",
-          discountPercentage: "", topLevelCategory: "", secondLevelCategory: "",
-          thirdLevelCategory: "", description: "", quantity: "", size: [], freeSize: "",
-        });
-        setImages([]);
-        setSelectedFiles([]);
-        setPreviewImages([]);
-        setSizeChart(null);
-      }
-      return;
-    } catch (dispatchErr) {
-      console.warn("Dispatch failed or returned unexpected result:", dispatchErr);
-      // fall through to direct upload fallback
-    }
+      setSuccessMessage("Product updated successfully.");
+      // navigate back or keep on page as desired
+      // navigate("/admin/products");
+    } else {
+      // create path — follow your simple code calling createProduct with { data, jwt }
+      const jwt = localStorage.getItem("jwt");
 
-    // --- FALLBACK: direct axios upload (bypass Redux) to identify whether Redux is the issue ---
-    try {
-      const API_BASE_URL = import.meta.env.VITE_React_BASE_API_URL || "http://localhost:5454";
-      // choose endpoint names that match your backend
-      const endpoint = isEditing ? `${API_BASE_URL}/api/admin/products/update` : `${API_BASE_URL}/api/admin/products/create`;
-
-      const headers = {
-        // do NOT add 'Content-Type' manually; axios will handle multipart boundary
-        ...(localStorage.getItem("jwt") ? { Authorization: `Bearer ${localStorage.getItem("jwt")}` } : {}),
-      };
-
-      const axiosResp = await axios.post(endpoint, payload, { headers });
-      console.log("Direct axios upload response:", axiosResp?.data);
-
+      await dispatch(createProduct({ data: payload, jwt }));
+      // clear form after successful creation (same fields you used earlier)
+      setFormData({
+        _id: null,
+        images: "",
+        brand: "",
+        title: "",
+        color: "",
+        price: "",
+        discountedPrice: "",
+        discountPercentage: "",
+        topLevelCategory: "",
+        secondLevelCategory: "",
+        thirdLevelCategory: "",
+        description: "",
+        quantity: "",
+        size: [],
+        freeSize: "",
+      });
+      setImages([]);
+      setSelectedFiles([]);
+      setPreviewImages([]);
+      setSizeChart(null);
       setSuccess(true);
-      setSuccessMessage(isEditing ? "Product updated successfully (via axios fallback)" : "Product created successfully (via axios fallback)");
-
-      if (!isEditing) {
-        setFormData({
-          _id: null, images: "", brand: "", title: "", color: "", price: "", discountedPrice: "",
-          discountPercentage: "", topLevelCategory: "", secondLevelCategory: "",
-          thirdLevelCategory: "", description: "", quantity: "", size: [], freeSize: "",
-        });
-        setImages([]);
-        setSelectedFiles([]);
-        setPreviewImages([]);
-        setSizeChart(null);
-      }
-
-    } catch (axiosErr) {
-      console.error("Direct upload (axios) failed:", axiosErr, axiosErr?.response?.data || axiosErr?.message);
-      setSuccess(false);
-      setSuccessMessage(axiosErr?.response?.data?.message || axiosErr?.message || "Upload failed. Check console & network tab.");
+      setSuccessMessage("Product created successfully.");
     }
-
   } catch (err) {
-    console.error("handleSubmit top-level error:", err);
+    console.error("Update/create failed:", err);
     setSuccess(false);
-    setSuccessMessage(err?.message || "Unexpected error. Check console.");
+    setSuccessMessage(err?.message || "Operation failed. See console.");
   }
 };
+
+
+
 
 
 // ... (rest of the component)
@@ -552,17 +502,28 @@ useEffect(() => {
       <div className="mb-8">
 {/* Size chart UI */}
 {sizeChart?.sizes && sizeChart.sizes.length > 0 && (
-  <div className="mb-6">
-    <h3 className="mb-2 font-semibold">Available sizes (set quantities)</h3>
-    <div className="grid grid-cols-2 gap-3">
+  <div className="mb-6 bg-white shadow-md rounded-lg p-5 border border-gray-200">
+    <h3 className="mb-4 text-gray-900 font-semibold text-lg">
+      Available Sizes (Set Quantities)
+    </h3>
+
+    <div className="grid grid-cols-2 gap-4">
       {sizeChart.sizes.map((sizeObj) => {
         const label = sizeObj.label;
-        // find current quantity in formData.size
-        const current = formData.size?.find(s => s.name === label) || { name: label, quantity: 0 };
+
+        const current =
+          formData.size?.find((s) => s.name === label) || {
+            name: label,
+            quantity: 0,
+          };
 
         return (
-          <div key={label} className="flex items-center gap-3">
-            <div className="w-32">{label}</div>
+          <div
+            key={label}
+            className="flex items-center justify-between bg-gray-50 border border-gray-300 rounded-md px-4 py-2"
+          >
+            <span className="text-gray-900 font-medium">{label}</span>
+
             <input
               type="number"
               min="0"
@@ -571,16 +532,18 @@ useEffect(() => {
                 const q = Number(e.target.value || 0);
                 setFormData((prev) => {
                   const sizes = Array.isArray(prev.size) ? [...prev.size] : [];
-                  const idx = sizes.findIndex(s => s.name === label);
+                  const idx = sizes.findIndex((s) => s.name === label);
+
                   if (idx >= 0) {
                     sizes[idx] = { ...sizes[idx], quantity: q };
                   } else {
                     sizes.push({ name: label, quantity: q });
                   }
+
                   return { ...prev, size: sizes };
                 });
               }}
-              className="w-24 bg-transparent border rounded px-2 py-1"
+              className="w-24 border border-gray-300 rounded-md px-2 py-1 text-gray-900 bg-white focus:ring-2 focus:ring-purple-400 focus:outline-none"
             />
           </div>
         );
@@ -588,6 +551,7 @@ useEffect(() => {
     </div>
   </div>
 )}
+
 
       </div>
 

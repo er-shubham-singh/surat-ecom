@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
   return (
-    <div className="h-screen flex flex-col bg-black text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-white text-white overflow-hidden">
       {/* Fixed Topbar */}
       <div className="shrink-0 z-10">
         <Topbar />

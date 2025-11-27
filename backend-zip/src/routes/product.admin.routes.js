@@ -8,7 +8,11 @@ const { default: SizeChart } = require("../models/sizechart.model.js");
 router.post('/', upload.array("images", 4),productController.createProduct);
 router.post('/creates', productController.createMultipleProduct);
 router.delete('/:id', productController.deleteProduct);
-router.put('/:id', productController.updateProduct);
+router.put(
+  '/:id',
+  upload.fields([{ name: "images", maxCount: 4 }]),
+  productController.updateProduct
+);
 router.get("/:category", async (req, res) => {
   try {
     const chart = await SizeChart.findOne({ category: req.params.category });
