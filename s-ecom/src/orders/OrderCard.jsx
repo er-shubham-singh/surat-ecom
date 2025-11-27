@@ -1,188 +1,228 @@
-import { Box, Chip, Grid, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import CancelIcon from "@mui/icons-material/Cancel";
 import ReplayIcon from "@mui/icons-material/Replay";
 import DoneIcon from "@mui/icons-material/Done";
 import StarIcon from "@mui/icons-material/Star";
-import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike"; // 🛵 for Out For Delivery
-
+import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const getStatusIcon = (status) => {
+  if (!status) return <AccessTimeIcon fontSize="small" />;
   const normalizedStatus = status.toLowerCase();
   switch (normalizedStatus) {
     case "confirmed":
-      return <AccessTimeIcon fontSize="small" color="action" />;
+      return <AccessTimeIcon fontSize="small" />;
     case "shipped":
-      return <LocalShippingIcon fontSize="small" color="primary" />;
+      return <LocalShippingIcon fontSize="small" />;
     case "delivered":
-      return <DoneIcon fontSize="small" color="success" />;
+      return <DoneIcon fontSize="small" />;
     case "cancelled":
-      return <CancelIcon fontSize="small" color="error" />;
+      return <CancelIcon fontSize="small" />;
     case "returned":
-      return <ReplayIcon fontSize="small" color="warning" />;
+      return <ReplayIcon fontSize="small" />;
     case "outfordelivery":
-      return <DirectionsBikeIcon fontSize="small" sx={{ color: "#FB8C00" }} />; // orange-ish
+      return <DirectionsBikeIcon fontSize="small" />;
     default:
-      return <AccessTimeIcon fontSize="small" color="action" />;
+      return <AccessTimeIcon fontSize="small" />;
   }
 };
 
-
-const OrderCard = ({ item, order }) => {
-  const navigate = useNavigate();
-  // console.log("items... on order card : ", item)
-
-  const isDelivered = order.orderStatus?.toLowerCase() === "delivered";
-
-  // Format updated date
-  const updatedDate = new Date(order.statusUpdatedAt);
-  const formattedUpdatedDate = updatedDate.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-  });
-
-  // Calculate expected delivery: 5 days from order creation
-  const createdDate = new Date(order.createdAt);
-  const expectedDateObj = new Date(createdDate);
-  expectedDateObj.setDate(createdDate.getDate() + 5);
-  const formattedExpectedDate = expectedDateObj.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-  });
-
-const getDeliveryText = () => {
-  const status = order.orderStatus?.toLowerCase();
-  switch (status) {
+const getStatusColor = (status) => {
+  if (!status) return { bg: "#F3F4F6", color: "#6B7280", border: "#6B7280" };
+  const normalizedStatus = status.toLowerCase();
+  switch (normalizedStatus) {
     case "confirmed":
-      return "Expected Delivery";
+      return { bg: "#FFF9E8", color: "#F59E0B", border: "#F59E0B" };
     case "shipped":
-      return "Shipped On";
-    case "outfordelivery":
-      return "Out For Delivery On";
+      return { bg: "#DBEAFE", color: "#2563EB", border: "#2563EB" };
     case "delivered":
-      return "Delivered On";
+      return { bg: "#D1FAE5", color: "#059669", border: "#059669" };
     case "cancelled":
-      return "Cancelled On";
+      return { bg: "#FEE2E2", color: "#DC2626", border: "#DC2626" };
     case "returned":
-      return "Returned On";
+      return { bg: "#FED7AA", color: "#EA580C", border: "#EA580C" };
+    case "outfordelivery":
+      return { bg: "#E9D5FF", color: "#9333EA", border: "#9333EA" };
     default:
-      return "Expected Delivery";
+      return { bg: "#F3F4F6", color: "#6B7280", border: "#6B7280" };
   }
 };
 
-const getDeliveryDate = () => {
-  const status = order.orderStatus?.toLowerCase();
-  const statusUpdated = new Date(order.statusUpdatedAt);
-  const expected = new Date(order.createdAt);
-  expected.setDate(expected.getDate() + 4); // expected delivery 4 days from creation
+const OrderCard = ({ item, order, showViewDetails = true }) => {
+  const navigate = useNavigate();
 
-  if (status === "confirmed") return expected.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-  if (["shipped", "outfordelivery", "delivered", "cancelled", "returned"].includes(status)) {
-    return statusUpdated.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+  // Safety check - return null if critical data is missing
+  if (!item) {
+    console.warn("OrderCard: item is undefined");
+    return null;
   }
-  return expected.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-};
 
-const shouldShowExpectedDate = () => {
-  const status = order.orderStatus?.toLowerCase();
-  return status === "confirmed" || status === "shipped";
-};
+  // Handle cases where order might be undefined or incomplete
+  const safeOrder = order || {};
+  const orderStatus = safeOrder.orderStatus || "confirmed";
+  const orderId = safeOrder._id || "unknown";
+  const createdAt = safeOrder.createdAt || new Date().toISOString();
+  const totalDiscountedPrice =
+    safeOrder.totalDiscountedPrice || item?.discountedPrice || 0;
+  const orderItemsLength =
+    safeOrder.orderItems?.length || safeOrder.totalItem || 1;
 
-const getExpectedDate = () => {
-  const expected = new Date(order.createdAt);
-  expected.setDate(expected.getDate() + 4);
-  return expected.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-};
+  const isDelivered = orderStatus.toLowerCase() === "delivered";
+  const statusColors = getStatusColor(orderStatus);
 
-const getExpectedMessage = () => {
-  const status = order.orderStatus?.toLowerCase();
-  const expectedDate = getExpectedDate();
+  const getExpectedMessage = () => {
+    try {
+      const status = orderStatus.toLowerCase();
+      const expected = new Date(createdAt);
+      expected.setDate(expected.getDate() + 4);
+      const expectedDate = expected.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+      });
 
-  if (status === "delivered") return null;
-  if (status === "outfordelivery") return "Your item's is Out for Delivery, It will be delivered today";
-  return `Expected by: ${expectedDate}`;
-};
+      if (status === "delivered") return null;
+      if (status === "outfordelivery") return `Expected by: ${expectedDate}`;
+      return `Expected by: ${expectedDate}`;
+    } catch (error) {
+      console.error("Error in getExpectedMessage:", error);
+      return null;
+    }
+  };
+
+  const placedDate = (() => {
+    try {
+      return new Date(createdAt).toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch (error) {
+      return "N/A";
+    }
+  })();
+
+  const handleCardClick = () => {
+    if (orderId !== "unknown") {
+      console.log("Navigating to order:", orderId);
+      navigate(`/account/order/${orderId}`);
+    }
+  };
 
   return (
-    <Box className="bg-white p-4 rounded-lg shadow-md border">
-      <Grid container spacing={2} >
-        <Grid item xs={4} onClick={() => navigate(`/account/order/${order?._id}`)}>
-          <img
-            src={item?.product?.imageUrl?.[0]}
-            alt={item?.product?.title}
-            className="w-[120px] h-[120px] object-cover rounded-md"
-          />
-        </Grid>
+    <Box className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-[#DFF200]">
+      {/* Main Content Row */}
+      <Box
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 cursor-pointer"
+        onClick={handleCardClick}
+      >
+        {/* Left: Image + Order Info */}
+        <Box className="flex items-center gap-4 flex-1">
+          <Box className="w-20 h-20 rounded-xl overflow-hidden bg-white border-2 border-gray-200 hover:scale-105 transition-transform flex-shrink-0">
+            <img
+              src={item?.product?.imageUrl?.[0] || "/placeholder-image.jpg"}
+              alt={item?.product?.title || "Product"}
+              className="w-full h-full object-cover"
+            />
+          </Box>
 
-        <Grid item xs={8} onClick={() => navigate(`/account/order/${order?._id}`)}>
-          <Typography className="text-sm font-semibold mb-1">
-            {item?.product?.title}
-            <p className="text-gray-600 text-xs font-normal ml-1">
-              ₹{item?.discountedPrice}
-            </p>
-            <p className="text-gray-600 text-xs font-normal ml-1">
-            Size : {item?.size}
-          </p>
-            <p className="text-gray-600 text-xs font-normal ml-1">
-            Quantity : {item?.quantity}
-          </p>
-           <p className="text-gray-600 text-xs font-normal ml-1">
-            Color : {item?.product?.color}
-          </p>
+          <Box>
+            <Typography className="font-bold text-lg text-gray-900 mb-1">
+              Order #{orderId.slice(-4)}
+            </Typography>
+            <Typography className="text-sm text-gray-500 mb-0.5">
+              Placed on: {placedDate}
+            </Typography>
+            <Typography className="text-sm text-gray-600 font-medium">
+              Items: {orderItemsLength}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Center: Status Badge */}
+        <Box className="flex justify-start md:justify-center flex-1">
+          <Box
+            sx={{
+              backgroundColor: statusColors.bg,
+              color: statusColors.color,
+              border: `2px solid ${statusColors.border}`,
+            }}
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-bold text-sm uppercase"
+          >
+            {getStatusIcon(orderStatus)}
+            {orderStatus}
+          </Box>
+        </Box>
+
+        {/* Right: Price + Button */}
+        <Box className="flex items-center gap-6 justify-end flex-1">
+          <Typography className="text-2xl font-black text-gray-900">
+            ₹{totalDiscountedPrice}
           </Typography>
 
-<Box className="mt-1 mb-2">
-  <Chip
-    label={order.orderStatus}
-    icon={getStatusIcon(order.orderStatus)}
-    color={
-      order.orderStatus.toLowerCase() === "delivered"
-        ? "success"
-        : order.orderStatus.toLowerCase() === "cancelled"
-        ? "error"
-        : order.orderStatus.toLowerCase() === "returned"
-        ? "warning"
-        : order.orderStatus.toLowerCase() === "outfordelivery"
-        ? "warning"
-        : "primary"
-    }
-    size="small"
-  />
-
-  {/* ✅ Show the action date like: Shipped On: 08 Jul */}
-  <Box sx={{marginTop : "6px", fontSize: '16px'}} className="">
-    {getDeliveryText()}:{" "}
-    <span className="font-medium text-black">{getDeliveryDate()}</span>
-  </Box>
-</Box>
-
-
-
-
-
-        </Grid>
-{getExpectedMessage() && (
-  <Box className=" mx-2 mt-1 flex items-center gap-1 text-orange-500 text-xs font-medium">
-    <AccessTimeIcon fontSize="small" />
-    {getExpectedMessage()}
-  </Box>
-)}
-        {/* Full width Rate & Review (xs=12) */}
-        {isDelivered && (
-          <Grid item xs={12}>
-            <div
-              onClick={() => navigate(`/account/rate/${item?.product?._id}`)}
-              className="flex items-center text-blue-600 mt-2 cursor-pointer"
+          {showViewDetails && orderId !== "unknown" && (
+            <Box
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("View Details clicked for order:", orderId);
+                navigate(`/account/order/${orderId}`);
+              }}
+              sx={{
+                bgcolor: "#DFF200",
+                color: "#111111",
+                border: "2px solid #CBE600",
+                "&:hover": {
+                  bgcolor: "#CBE600",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 24px rgba(223, 242, 0, 0.4)",
+                },
+              }}
+              className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all uppercase tracking-wide whitespace-nowrap"
             >
-              <StarIcon sx={{ fontSize: "1.5rem" }} className="mr-1" />
-              <span className="text-sm font-medium">Rate & Review Product</span>
-            </div>
-          </Grid>
-        )}
-      </Grid>
+              View Details
+            </Box>
+          )}
+        </Box>
+      </Box>
+
+      {/* Expected Delivery Message */}
+      {getExpectedMessage() && (
+        <Box className="px-6 pb-5">
+          <Box className="flex items-center gap-2.5 text-orange-600 text-sm font-semibold bg-orange-50 border-2 border-orange-200 px-4 py-3 rounded-xl inline-flex">
+            <AccessTimeIcon sx={{ fontSize: 18 }} />
+            {getExpectedMessage()}
+          </Box>
+        </Box>
+      )}
+
+      {/* Rate & Review for Delivered Orders */}
+      {isDelivered && item?.product?._id && (
+        <Box className="px-6 pb-5">
+          <Box
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/account/rate/${item.product._id}`);
+            }}
+            sx={{
+              bgcolor: "#DFF200",
+              border: "2px solid #CBE600",
+              "&:hover": {
+                bgcolor: "#CBE600",
+                transform: "scale(1.02)",
+                boxShadow: "0 8px 20px rgba(223, 242, 0, 0.3)",
+              },
+            }}
+            className="flex items-center gap-2.5 rounded-xl px-5 py-3 cursor-pointer transition-all inline-flex font-bold"
+          >
+            <StarIcon sx={{ fontSize: "1.25rem", color: "#111111" }} />
+            <span className="text-sm text-gray-900 uppercase tracking-wide">
+              Rate & Review Product
+            </span>
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };
