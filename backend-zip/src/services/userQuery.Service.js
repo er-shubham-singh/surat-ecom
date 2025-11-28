@@ -5,6 +5,7 @@ const  transporter  = require("../config/transporter.js");
 const { sendUserQueryConfirmationEmail } = require("../config/sendUserQueryConfirmationEmail");
 const userQueryModel = require("../models/userQuery.model");
 
+
 // const transporter = require("../config/mailer");
 const OWNER_EMAIL = process.env.OWNER_EMAIL;
 
