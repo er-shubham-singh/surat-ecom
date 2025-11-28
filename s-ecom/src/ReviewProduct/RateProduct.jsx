@@ -11,7 +11,8 @@ import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import { useDispatch, useSelector } from "react-redux";
 import { createReview } from "../redux/Review/Action";
 import { useNavigate, useParams } from "react-router-dom";
-import { findProductById } from "../redux/Product/action";
+import { findProductById } from "../redux/product/action";
+
 
 const RateProduct = () => {
   const [formData, setFormData] = useState({ description: "" });
