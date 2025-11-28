@@ -9,6 +9,8 @@ import {couponReducer} from './Coupon/couponReducer'
 import {orderReducer} from './Order/Reducer'
 import ReviewReducer from "./Review/Reducer";
 import RatingSummaryReducer from './Review/ratingSummaryReducer'
+import queryReducer from "./Query/Reducer";
+import { chatReducer } from "./Chat/Reducer";
 const rootReducers=combineReducers({
 
     auth: authReducer,
@@ -18,7 +20,8 @@ const rootReducers=combineReducers({
     coupon:couponReducer,
     review:ReviewReducer,
     ratingSummaryState: RatingSummaryReducer,
-
+    query: queryReducer,
+    chat:chatReducer
 
 
 });
