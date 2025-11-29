@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // --- REVISED: Footer uses Header's color scheme: BG #DFF200, Text #111111 ---
 
@@ -10,6 +10,8 @@ const Icon = ({ children, ...props }) => (
 );
 
 export default function Footer() {
+
+  const navigate = useNavigate()
   return (
     // CHANGE 1: Use Header's background and dark text color
     <footer className="bg-[#DFF200] text-[#111111] mt-8">
@@ -82,21 +84,13 @@ export default function Footer() {
               }}
               className="flex gap-2"
             >
-              <input
-                name="email"
-                type="email"
-                required
-                placeholder="Enter your email"
-                aria-label="Email"
-                // Input remains white with dark text for accessibility
-                className="min-w-0 flex-1 px-3 py-2 rounded text-black outline-none border border-transparent focus:border-[#CBE600]"
-              />
-              <button
+
+              <button onClick={()=>navigate("/contact-us")}
                 type="submit"
                 // CHANGE 6: Submit button needs a contrasting color now, using the secondary hover color
                 className="px-4 py-2 rounded bg-[#CBE600] text-[#111111] font-semibold hover:opacity-95 transition"
               >
-                SUBMIT
+               Contact-Us
               </button>
             </form>
           </div>
@@ -111,8 +105,8 @@ export default function Footer() {
 
             <div className="flex items-center gap-6">
               {/* Matches Change 5 - bottom links use hover background */}
-              <Link to="/terms" className="py-1 px-2 -mx-2 rounded text-sm text-[#111111] hover:bg-[#CBE600] transition inline-block">Terms</Link>
-              <Link to="/privacy" className="py-1 px-2 -mx-2 rounded text-sm text-[#111111] hover:bg-[#CBE600] transition inline-block">Privacy</Link>
+              <Link to="/terms-condition" className="py-1 px-2 -mx-2 rounded text-sm text-[#111111] hover:bg-[#CBE600] transition inline-block">Terms</Link>
+              <Link to="/privaciy-policy" className="py-1 px-2 -mx-2 rounded text-sm text-[#111111] hover:bg-[#CBE600] transition inline-block">Privacy</Link>
               <Link to="/cookies" className="py-1 px-2 -mx-2 rounded text-sm text-[#111111] hover:bg-[#CBE600] transition inline-block">Cookies</Link>
             </div>
           </div>
