@@ -107,7 +107,6 @@ const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
-
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) =>
@@ -122,7 +121,7 @@ const Home = () => {
   return (
     <>
       {/* HERO SECTION */}
-      <div className="pt-16 relative w-full h-[380px] sm:h-[450px] md:h-[550px] lg:h-[650px] xl:h-[750px] overflow-hidden">
+      <div className="relative w-full h-[380px] sm:h-[450px] md:h-[550px] lg:h-[650px] xl:h-[750px] max-[2499px]:2xl:h-[850px] min-[2500px]:h-[1000px] overflow-hidden">
         {HomeCarouselData.map((item, index) => (
           <div
             key={item.id}
@@ -136,13 +135,17 @@ const Home = () => {
               src={item.image}
               alt={item.title}
               loading="lazy"
-              className="w-full h-full object-cover object-center"
+              className="w-full h-full object-cover object-top"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
           </div>
         ))}
 
-        <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-20">
+        <div
+          className="absolute inset-0 flex flex-col justify-end items-center text-center px-4 z-20 pb-32"
+          data-aos="fade-up"
+          data-aos-duration="600"
+        >
           <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4 md:space-y-6">
             <p className="text-xs sm:text-sm md:text-base tracking-[0.25em] font-light text-white/90 uppercase">
               Timeless Fashion
@@ -249,14 +252,16 @@ const Home = () => {
         </div>
       </div>
 
-
       {/* NEW ARRIVALS SECTION */}
       <section className="py-10 sm:py-14 md:py-20 lg:py-28 bg-[#FFFDF6] relative overflow-hidden">
         <div className="absolute top-0 left-0 w-32 sm:w-40 md:w-52 lg:w-64 h-32 sm:h-40 md:h-52 lg:h-64 bg-[#CBE600]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-56 sm:w-72 md:w-80 lg:w-96 h-56 sm:h-72 md:h-80 lg:h-96 bg-[#DFF200]/5 rounded-full blur-3xl" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16 lg:mb-20">
+          <div
+            className="text-center mb-8 sm:mb-12 md:mb-16 lg:mb-20"
+            data-aos="fade-up"
+          >
             <span
               className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-xs tracking-widest font-medium mb-3 sm:mb-4"
               style={{ backgroundColor: "#DFF200", color: "#222426" }}
@@ -292,6 +297,8 @@ const Home = () => {
                 key={item.id}
                 className="group relative"
                 style={{ animationDelay: `${index * 100}ms` }}
+                data-aos="fade-up"
+                data-aos-delay={index * 100}
               >
                 <div className="bg-white rounded-lg overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
                   <div className="relative w-full h-40 sm:h-48 md:h-56 lg:h-72 xl:h-80 overflow-hidden">
@@ -337,7 +344,10 @@ const Home = () => {
       >
         <div className="absolute top-10 right-10 w-56 sm:w-72 md:w-80 lg:w-96 h-56 sm:h-72 md:h-80 lg:h-96 bg-[#CBE600]/10 rounded-full blur-3xl" />
 
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 mb-10 sm:mb-12 md:mb-16 relative z-10">
+        <div
+          className="max-w-3xl mx-auto px-4 sm:px-6 mb-10 sm:mb-12 md:mb-16 relative z-10"
+          data-aos="fade-up"
+        >
           <span
             className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-xs tracking-widest font-medium mb-3 sm:mb-4 md:mb-5"
             style={{ backgroundColor: "#CBE600", color: "white" }}
@@ -449,7 +459,10 @@ const Home = () => {
         <div className="absolute top-20 left-20 w-64 sm:w-80 md:w-96 h-64 sm:h-80 md:h-96 bg-[#DFF200]/5 rounded-full blur-3xl" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+          <div
+            className="text-center mb-10 sm:mb-12 md:mb-16"
+            data-aos="fade-up"
+          >
             <span
               className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-xs tracking-widest font-medium mb-3 sm:mb-4"
               style={{ backgroundColor: "#8A6F4F", color: "white" }}
@@ -475,6 +488,8 @@ const Home = () => {
                 key={it.id}
                 className="group relative"
                 style={{ animationDelay: `${index * 100}ms` }}
+                data-aos="zoom-in"
+                data-aos-delay={index * 100}
               >
                 <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
                   <div className="relative w-full aspect-4/5 overflow-hidden">
@@ -519,7 +534,7 @@ const Home = () => {
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
           {/* Header */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-16" data-aos="fade-up">
             <span
               className="inline-block px-4 py-1.5 rounded-full text-xs tracking-widest font-medium mb-4"
               style={{ backgroundColor: "#CBE600", color: "white" }}
@@ -551,7 +566,10 @@ const Home = () => {
       "
           >
             {/* Featured Blog Post */}
-            <article className="group md:col-span-2 md:row-span-2">
+            <article
+              className="group md:col-span-2 md:row-span-2"
+              data-aos="fade-up"
+            >
               <Link to="/blog/winter-styling-guide" className="block h-full">
                 <div className="bg-white rounded-xl overflow-hidden shadow-xl border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
                   {/* IMAGE WRAPPER — FULLY RESPONSIVE */}
@@ -611,7 +629,11 @@ const Home = () => {
             </article>
 
             {/* Blog Post 2 */}
-            <article className="group flex">
+            <article
+              className="group flex"
+              data-aos="fade-up"
+              data-aos-delay="100"
+            >
               <Link to="/blog/sustainable-fashion" className="block w-full">
                 <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
                   {/* RESPONSIVE IMAGE HEIGHT */}
@@ -663,7 +685,11 @@ const Home = () => {
             </article>
 
             {/* Blog Post 3 */}
-            <article className="group flex">
+            <article
+              className="group flex"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
               <Link to="/blog/color-trends-2025" className="block w-full">
                 <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
                   {/* RESPONSIVE IMAGE HEIGHT */}
@@ -724,7 +750,11 @@ const Home = () => {
             </article>
 
             {/* Blog Post 4 */}
-            <article className="group flex">
+            <article
+              className="group flex"
+              data-aos="fade-up"
+              data-aos-delay="300"
+            >
               <Link to="/blog/office-to-evening" className="block w-full">
                 <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
                   {/* Image */}
@@ -780,7 +810,11 @@ const Home = () => {
             </article>
 
             {/* Blog Post 5 */}
-            <article className="group flex">
+            <article
+              className="group flex"
+              data-aos="fade-up"
+              data-aos-delay="400"
+            >
               <Link to="/blog/accessory-essentials" className="block w-full">
                 <div className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-[#DFF200] transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
                   {/* Image */}

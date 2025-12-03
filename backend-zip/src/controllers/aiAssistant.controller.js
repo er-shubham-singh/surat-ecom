@@ -195,15 +195,21 @@ const fuzzyMatch = (input, candidates = []) => {
 
 // ---------------------------- Advanced intents ----------------------------
 const intents = [
-  {
-    name: "greeting",
-    priority: 10,
-    pattern: /\b(hi|hello|hey|good morning|gm|good afternoon|good evening|namaste|salaam)\b/i,
-    handler: async (req, match, ctx) => {
-      const hour = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", hour12: false });
-      return `Hi ${req.user?.name || ""}! 👋 Good to see you. Current IST hour: ${hour}. How can I assist you today?`;
-    },
+{
+  name: "greeting",
+  priority: 10,
+  // covers "hi", "hello", "hey", "good morning", "good afternoon", "good evening", "namaste"
+  pattern: /^(?:\s)*(hi|hello|hey|good\s+morning|gm|good\s+afternoon|good\s+evening|namaste|salaam)(?:[!,.?]|$)/i,
+  handler: async (req, match, ctx) => {
+    // keep the hour calculation but return a professional friendly message
+    const now = new Date();
+    const hour = Number(new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", hour12: false }).format(now));
+    const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    const name = (req.user && req.user.name) ? req.user.name.split(' ')[0] : ""; // first name if present
+    return `${timeGreeting}${name ? ' ' + name : ''}! 👋 How can I assist you with your order or product search today?`;
   },
+},
+
 
   {
     name: "how_are_you",
@@ -309,14 +315,22 @@ const intents = [
     handler: async () => "You're welcome! 😊 If you need anything else, ask away.",
   },
 
-  {
-    name: "help",
-    priority: 90,
-    pattern: /\b(help|commands|examples|what can you do)\b/i,
-    handler: async () => {
-      return `I can: check your latest order, give product prices (try "price of cotton kurti"), show Super Coins, and tell the date/time. Try: "show my latest order", "price of black blazer", "how many super coins do I have?"`;
-    },
+{
+  name: "help",
+  priority: 90,
+  pattern: /\b(help|commands|examples|what can you do|capabilities)\b/i,
+  handler: async () => {
+    return `I can assist with orders, product details, and account info. Examples you can try:\n\n` +
+           `• "Show my latest order"\n` +
+           `• "Price of black blazer"\n` +
+           `• "Is kurta in stock in M?"\n` +
+           `• "How many Super Coins do I have?"\n` +
+           `• "Return policy for orders"\n` +
+           `• "How long will shipping take to Delhi?"\n\n` +
+           `If you need help with payments, refunds, or account updates, say "contact support" or "help with payment".`;
   },
+},
+
   {
   name: "super_coins",
   priority: 15,
@@ -332,7 +346,7 @@ const intents = [
   priority: 18,
   pattern: /\b(customer\s*(care|support)\s*(number|contact)|contact\s*(number|us)|support\s*(number|line|team)|help\s*number|phone\s*number|call\s*you|how\s*to\s*contact|customer\s*service)\b/i,
   handler: async () => {
-    return "📞 You can reach our customer support at: **+91 98765 43210**.\nWe’re available 10 AM – 7 PM (Mon–Sat).";
+    return "📞 You can reach our customer support at: **+91 750 077 3292.\nWe’re available 10 AM – 7 PM (Mon–Sat).";
   }
 },
 {
@@ -483,11 +497,23 @@ const aiChatAssistant = async (req, res) => {
     session.history = (session.history || []).slice(-10);
 
     // intent matching (by priority + regex)
+// --- replace existing intent matching block with this ---
+    // intent matching (by priority + regex)
     const ordered = intents.slice().sort((a, b) => (a.priority || 100) - (b.priority || 100));
+
+    // create a normalized string used for matching so regexes behave predictably
+    const cleanedForMatch = cleanedMessage
+      .toString()
+      .replace(/[^\w\s\-\&']/g, ' ') // keep hyphen/ampersand/apostrophe if used in product names
+      .replace(/\s+/g, ' ')
+      .trim();
+
     for (const intent of ordered) {
-      const match = cleanedMessage.match(intent.pattern);
+      const match = cleanedForMatch.match(intent.pattern) || cleanedMessage.match(intent.pattern);
       if (match) {
         try {
+          // debug log (safe — do not log PII in production)
+          console.log(`ai: matched intent="${intent.name}" for user=${req.user ? req.user._id : 'anon'} msg="${cleanedForMatch}"`);
           const reply = await intent.handler(req, match, { session });
           session.history.push({ user: cleanedMessage, bot: reply, intent: intent.name, ts: Date.now() });
           await saveSession(user._id, session);
@@ -498,6 +524,7 @@ const aiChatAssistant = async (req, res) => {
         }
       }
     }
+
 
     // HF fallback
     try {

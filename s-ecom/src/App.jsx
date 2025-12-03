@@ -15,12 +15,15 @@ import Contact from "./Pages/Contact";
 import TearmsCondition from "./Pages/TearmsCondition";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import About from "./Pages/About";
-import Collection from "./Pages/Collection";
-import Bestseller from "./Pages/Bestseller";
 import NotFound from "./Pages/Notfound";
 import ChatWidget from "./ChatAi/ChatWidget";
-import { loadUserFromToken } from './redux/Auth/action'; 
-import { useDispatch } from 'react-redux';
+import { loadUserFromToken } from "./redux/Auth/action";
+import { useDispatch } from "react-redux";
+import Collection from "./Collection";
+import Bestseller from "./Bestseller";
+
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 function App() {
   const dispatch = useDispatch();
@@ -28,6 +31,11 @@ function App() {
   const [count, setCount] = useState(0);
   useEffect(() => {
     dispatch(loadUserFromToken());
+    AOS.init({
+      duration: 500,
+      easing: "ease-in-out",
+      once: true,
+    });
   }, [dispatch]);
   return (
     <>

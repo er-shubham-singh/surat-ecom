@@ -54,6 +54,8 @@ function AddsBar() {
           <Message2 />
           <Message1 />
           <Message2 />
+                    <Message1 />
+          <Message2 />
         </Marquee>
       </div>
     </div>

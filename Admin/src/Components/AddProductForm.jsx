@@ -194,7 +194,7 @@ const handleSubmit = async (e) => {
       // create path — follow your simple code calling createProduct with { data, jwt }
       const jwt = localStorage.getItem("jwt");
 
-      await dispatch(createProduct({ data: payload, jwt }));
+await dispatch(createProduct(payload, jwt));
       // clear form after successful creation (same fields you used earlier)
       setFormData({
         _id: null,

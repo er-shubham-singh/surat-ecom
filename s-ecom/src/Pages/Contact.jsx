@@ -41,7 +41,7 @@ const Contact = () => {
       style={{ backgroundColor: "#FFF9E8" }}
     >
       {/* Heading */}
-      <div className="text-center space-y-3 sm:space-y-4">
+      <div className="text-center space-y-3 sm:space-y-4" data-aos="fade-down">
         <h1
           className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold"
           style={{ color: "#111111" }}
@@ -59,6 +59,7 @@ const Contact = () => {
         <div
           className="w-full lg:w-1/2 rounded-2xl shadow-lg p-6 sm:p-8 space-y-6"
           style={{ backgroundColor: "#FFFFFF" }}
+          data-aos="fade-right"
         >
           <h2
             className="text-2xl sm:text-3xl font-bold mb-6"
@@ -70,7 +71,7 @@ const Contact = () => {
           <div className="space-y-5">
             <div className="flex items-start gap-4">
               <MdLocationOn
-                className="text-2xl sm:text-3xl flex-shrink-0"
+                className="text-2xl sm:text-3xl shrink-0"
                 style={{ color: "#CBE600" }}
               />
               <div>
@@ -93,7 +94,7 @@ const Contact = () => {
 
             <div className="flex items-start gap-4">
               <MdPhone
-                className="text-2xl sm:text-3xl flex-shrink-0"
+                className="text-2xl sm:text-3xl shrink-0"
                 style={{ color: "#CBE600" }}
               />
               <div>
@@ -111,7 +112,7 @@ const Contact = () => {
 
             <div className="flex items-start gap-4">
               <MdEmail
-                className="text-2xl sm:text-3xl flex-shrink-0"
+                className="text-2xl sm:text-3xl shrink-0"
                 style={{ color: "#CBE600" }}
               />
               <div>
@@ -129,7 +130,7 @@ const Contact = () => {
 
             <div className="flex items-start gap-4">
               <MdWhatsapp
-                className="text-2xl sm:text-3xl flex-shrink-0"
+                className="text-2xl sm:text-3xl shrink-0"
                 style={{ color: "#CBE600" }}
               />
               <div>
@@ -147,7 +148,7 @@ const Contact = () => {
 
             <div className="flex items-start gap-4">
               <MdAccessTime
-                className="text-2xl sm:text-3xl flex-shrink-0"
+                className="text-2xl sm:text-3xl shrink-0"
                 style={{ color: "#CBE600" }}
               />
               <div>
@@ -169,7 +170,10 @@ const Contact = () => {
         </div>
 
         {/* Contact Form Section */}
-        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+        <div
+          className="w-full lg:w-1/2 bg-white rounded-2xl shadow-lg p-6 sm:p-8"
+          data-aos="fade-left"
+        >
           <h2
             className="text-2xl sm:text-3xl font-bold mb-6"
             style={{ color: "#111111" }}

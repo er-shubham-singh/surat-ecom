@@ -1,0 +1,41 @@
+# Node modules
+Admin/node_modules/
+s-ecom/node_modules/
+backend-zip/node_modules/
+
+# Build folders
+Admin/dist/
+Admin/build/
+s-ecom/dist/
+S-ecom/build/
+Backend/dist/
+backend-zip/build/
+
+# Environment variables
+Admin/.env
+s-ecom/.env
+backend-zip/.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+
+# Cache
+**/.cache/
+**/temp/
+**/tmp/
+
+# Dependency lock files (optional)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

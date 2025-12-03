@@ -310,74 +310,120 @@ const navigation = [
     ],
     categories: [
       {
-        id: "men-topwear",
-        title: "Topwear",
+        id: "zipper",
+        title: "Zipper",
         subHeadings: [
           {
-            id: "men-top-tshirts",
-            name: "T-Shirts",
-            path: "/men/topwear/tshirts",
-            image:
-              "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=800",
-          },
+            id: "half-ziper",
+            name: "Half Zipper",
+            path: "/men/zipper/half-zipper",          },
           {
-            id: "men-top-shirts",
-            name: "Shirts",
-            path: "/men/topwear/shirts",
-            image:
-              "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=800",
-          },
-          {
-            id: "men-top-blazers",
-            name: "Blazers & Jackets",
-            path: "/men/topwear/blazers",
-            image:
-              "https://images.unsplash.com/photo-1530845640854-6f3a56c5a3f0?q=80&w=800",
+            id: "full-zipper",
+            name: "Full Zipper",
+            path: "/men/zipper/full-zipper",
           },
         ],
       },
 
       {
-        id: "men-bottomwear",
-        title: "Bottomwear",
+        id: "jacket",
+        title: "Jacket",
         subHeadings: [
           {
-            id: "men-bottom-jeans",
-            name: "Jeans",
-            path: "/men/bottomwear/jeans",
-            image:
-              "https://images.unsplash.com/photo-1514996937319-344454492b37?q=80&w=800",
+            id: "half-jacket",
+            name: "Half Jacket",
+            path: "/men/jacket/half-jacket",
           },
           {
-            id: "men-bottom-trousers",
-            name: "Trousers",
-            path: "/men/bottomwear/trousers",
-            image:
-              "https://images.unsplash.com/photo-1503342217505-b0a15d2a0a2d?q=80&w=800",
+            id: "cotnise-jacket",
+            name: "Cotnise Jacket",
+            path: "/men/jacket/cotnise-jacket",
+          },
+          {
+            id:"denim-jacket",
+            name:"Denim Jacket",
+            path:"/men/jacket/cotnise-jacket"
+          }
+        ],
+      },
+      {
+        id: "formal-trouser",
+        title: "Formal-Trousers",
+        subHeadings: [
+          {
+            id: "linen-trouser",
+            name: "Linen Trouser",
+            path: "/men/formal-trouser/linen-trouser",
+          },
+          {
+            id: "cargo",
+            name: "Cargo",
+            path: "/men/formal-trouser/cargo",
+          },
+        ],
+      },
+                  {
+        id: "jeans",
+        title: "Jeans",
+        subHeadings: [
+          {
+            id: "cotrises-jeans",
+            name: "Cotrise Jeans",
+            path: "/men/jeans/cotrises-jeans",
+          },
+          {
+            id: "fleece",
+            name: "Fleece",
+            path: "/men/jeans/fleece",
+          },
+                    {
+            id: "without-fleece",
+            name: "Without Fleece",
+            path: "/men/jeans/without-fleece",
+          },
+        ],
+      },
+            {
+        id: "lower",
+        title: "Lower",
+        subHeadings: [
+          {
+            id: "cotrises",
+            name: "Cotrises",
+            path: "/men/lower/cotrises",
+          },
+          {
+            id: "fleece",
+            name: "Fleece",
+            path: "/men/lower/fleece",
+          },
+                    {
+            id: "straight-fit",
+            name: "Straight Fit",
+            path: "/men/lower/straight-fit",
+          },
+                            {
+            id: "narrow-fit",
+            name: "Narrow Fit",
+            path: "/men/lower/narrow-fit",
+          },
+                                     {
+            id: "lower-style-pant",
+            name: "Lower Style Pant",
+            path: "/men/lower/lower-style-pant",
+          },
+                                               {
+            id: "denim",
+            name: "Denim",
+            path: "/men/lower/denim",
+          },                                     {
+            id: "cargo",
+            name: "Cargo",
+            path: "/men/lower/cargo",
           },
         ],
       },
 
-      {
-        id: "men-ethnic",
-        title: "Ethnic",
-        subHeadings: [
-          {
-            id: "men-kurtas",
-            name: "Kurtas",
-            path: "/men/ethnic/kurtas",
-            image:
-              "https://images.unsplash.com/photo-1520975912274-2f1b8b1b3f1d?q=80&w=800",
-          },
-          {
-            id: "men-sherwanis",
-            name: "Sherwanis",
-            path: "/men/ethnic/sherwanis",
-            image:
-              "https://images.unsplash.com/photo-1530845640854-6f3a56c5a3f0?q=80&w=800",
-          },
-        ],
-      },
     ],
   },
 

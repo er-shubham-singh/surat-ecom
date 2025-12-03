@@ -12,12 +12,12 @@ require("dotenv").config();
 const sendEmail = async (email, otp) => {
   try {
     await transporter.sendMail({
-      from: `"Fluteon" <${process.env.FROM_EMAIL}>`,
+      from: `"Venus Garments" <${process.env.FROM_EMAIL}>`,
       to: email,
-      subject: "Your OTP for Fluteon Account Verification",
+      subject: "Your OTP for Venus Garments Account Verification",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2 style="color: #5c4dff;">Welcome to Fluteon!</h2>
+          <h2 style="color: #5c4dff;">Welcome to Venus Garments!</h2>
           <p>Thank you for using our platform. Please use the OTP below to verify your email address:</p>
           <h1 style="letter-spacing: 5px; background: #f0f0f0; padding: 10px 20px; display: inline-block; border-radius: 5px;">
             ${otp}
@@ -25,7 +25,7 @@ const sendEmail = async (email, otp) => {
           <p style="margin-top: 20px;">⚠️ <strong>Do not share this OTP</strong> with anyone. It will expire in <strong>10 minutes</strong>.</p>
           <hr style="margin: 20px 0;">
           <p style="font-size: 0.9em; color: #777;">If you did not request this OTP, please ignore this email.</p>
-          <p style="color: #aaa;">— Team Fluteon</p>
+          <p style="color: #aaa;">— Team Venus Garments</p>
         </div>
       `,
     });
