@@ -1,363 +1,274 @@
 // scripts/seedSizeCharts.js
 const dotenv = require('dotenv');
 dotenv.config();
-const  mongoose = require("mongoose");
-const { default: SizeChart } = require('./src/models/sizechart.model');
-
-// const dummySizeCharts = [
-//   {
-//     category: "ladies_tops",
-//     sizes: [
-//       { label: "M", length: 20, hip: 46, bust: 36, waist: 30 },
-//       { label: "L", length: 20, hip: 48, bust: 38, waist: 32 },
-//       { label: "XL", length: 20, hip: 50, bust: 40, waist: 34 },
-//     ],
-//   },
-//   {
-//     category: "ladies_jacket",
-//     sizes: [
-//       { label: "M", hip: 38, bust: 38, waist: 40, shoulder: 10 },
-//       { label: "L", hip: 39, bust: 40, waist: 40, shoulder: 10 },
-//       { label: "XL", hip: 40, bust: 42, waist: 42, shoulder: 10 },
-//     ],
-//   },
-//   {
-//     category: "hoodie",
-//     sizes: [
-//       { label: "M", chest: 34, brandSize: 32 },
-//       { label: "L", chest: 36, brandSize: 34 },
-//       { label: "XL", chest: 38, brandSize: 36 },
-//       { label: "XXL", chest: 40, brandSize: 38 },
-//       { label: "3XL", chest: 42, brandSize: 40 },
-//       { label: "4XL", chest: 44, brandSize: 42 },
-//       { label: "5XL", chest: 46, brandSize: 44 },
-//       { label: "6XL", chest: 48, brandSize: 46 },
-//       { label: "7XL", chest: 50, brandSize: 48 },
-//     ],
-//   },
-//   {
-//     category: "ladies_cardigan",
-//     sizes: [
-//       { label: "M", chest: 34, length: 24 },
-//       { label: "L", chest: 36, length: 24.5 },
-//       { label: "XL", chest: 38, length: 25.5 },
-//       { label: "XXL", chest: 40, length: 26.5 },
-//     ],
-//   },
-//   {
-//     category: "ladies_coat",
-//     sizes: [
-//       { label: "M", chest: 36 },
-//       { label: "L", chest: 38 },
-//       { label: "XL", chest: 40 },
-//       { label: "XXL", chest: 42 },
-//       { label: "3XL", chest: 44 },
-//       { label: "4XL", chest: 46 },
-//       { label: "5XL", chest: 48 },
-//       { label: "6XL", chest: 50 },
-//       { label: "7XL", chest: 52 },
-//     ],
-//   },
-// ];
+const mongoose = require("mongoose");
+const SizeChart = require('./src/models/sizechart.model').default || require('./src/models/sizechart.model');
 
 const dummySizeCharts = [
-    {
+  // WOMEN - Top
+  {
     category: "ladies_tops",
     sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
-  },
-  {
-    category: "ladies_jacket",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
-  },
-  {
-    category: "hoodie",
-    sizes: [
-      { label: "M"},
-      { label: "L"},
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL"},
-      { label: "4XL" },
-      { label: "5XL" },
-      { label: "6XL" },
-      { label: "7XL"},
-    ],
-  },
-  {
-    category: "ladies_cardigan",
-    sizes: [
-      { label: "M", },
-      { label: "L", } ,
-      { label: "XL", } ,
-      { label: "XXL", } ,
-    ],
-  },
-  {
-    category: "ladies_coat",
-    sizes: [
+      { label: "S" },
       { label: "M" },
       { label: "L" },
       { label: "XL" },
       { label: "XXL" },
       { label: "3XL" },
-      { label: "4XL" },
-      { label: "5XL" },
-      { label: "6XL" },
-      { label: "7XL" },
-    ],
+      { label: "Free" }
+    ]
+  },
+
+  // WOMEN - Jacket variants
+  {
+    category: "half_jacket",
+    sizes: [
+      { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }
+    ]
   },
   {
     category: "crop_jacket",
     sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+      { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }
+    ]
   },
   {
-    category: "half_jacket",
+    category: "denim-jacket",
     sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+      { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }
+    ]
+  },
+
+  // WOMEN - Hoodie variants (added oversized and back-print specific ones)
+  {
+    category: "hoodie",
+    sizes: [
+      { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" },
+      { label: "3XL" }, { label: "4XL" }, { label: "5XL" }, { label: "6XL" }, { label: "7XL" },
+      { label: "Free" }
+    ]
   },
   {
-    category: "hidden_button_shirts",
+    category: "oversized_hoodie",
     sizes: [
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+      { label: "Free" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }
+    ]
   },
   {
-    category: "short_cardigam",
+    category: "back_print_hoodie",
     sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
+      { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }
+    ]
+  },
+
+  // WOMEN - Cardigan variants
+  {
+    category: "short_cardigan",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
   {
-    category: "long_cardigam",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+    category: "long_cardigan",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
   },
   {
-    category: "corduroy_cardigam",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
+    category: "cotrise_cardigan",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
   {
-    category: "coat_look_cardigam",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
+    category: "coat_look_cardigan",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
+
+  // WOMEN - Coats
   {
     category: "short_length_coat",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
   },
   {
-    category: "medium_length_coat",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+    category: "medium_length_coats",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
   },
   {
-    category: "full_length_coat",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+    category: "full_length_coats",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
   },
+
+  // WOMEN - Cord set
   {
     category: "ethentic",
-    sizes: [
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
   {
     category: "western",
-    sizes: [
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
+
+  // WOMEN - Kurti
   {
     category: "party_wear",
-    sizes: [
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
   },
   {
     category: "casual",
-    sizes: [
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
+
+  // WOMEN - Night suits
   {
     category: "sleep_wear",
-    sizes: [
-      { label: "Free" },
-    ],
+    sizes: [{ label: "Free" }]
   },
+
+  // WOMEN - Dresses
   {
     category: "woolen",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
   },
   {
-    category: "party_waer",
-    sizes: [
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-    ],
+    category: "dresses_party_wear",
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
   },
+
+  // WOMEN - Jeans / Jeggings
   {
-    category: "narrow_fit", // jeans or jeggings
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    category: "narrow_fit",
+    sizes: [{ label: "28" }, { label: "30" }, { label: "32" }, { label: "34" }, { label: "Free" }]
   },
   {
     category: "regular_fit",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "36" }, { label: "Free" }]
   },
   {
+    category: "jeggings_narrow_fit",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
+  },
+
+  // WOMEN - Pants & lower
+  {
     category: "formal_pants",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "36" }, { label: "Free" }]
   },
   {
     category: "trouser",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "36" }, { label: "Free" }]
   },
   {
     category: "bell_bottom",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
   {
-    category: "corduroy",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    category: "cottonise",
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
   {
-    category: "pant_fit",
-    sizes: [
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    category: "pants_fits",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
+  },
+  {
+    category: "regular_fit_lower",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   },
   {
     category: "slim_fit",
-    sizes: [
-      { label: "28" },
-      { label: "L" },
-      { label: "XL" },
-      { label: "XXL" },
-      { label: "3XL" },
-    ],
+    sizes: [{ label: "28" }, { label: "30" }, { label: "32" }, { label: "Free" }]
   },
+
+  // WOMEN - Lingerie
   {
     category: "jockey",
-    sizes: [
-      { label: "Free Size" },
-    ],
+    sizes: [{ label: "Free" }]
   },
   {
     category: "amante",
-    sizes: [
-      { label: "Free Size" },
-    ],
+    sizes: [{ label: "Free" }]
+  },
+
+  // MEN - Zipper
+  {
+    category: "half-zipper",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
+  },
+  {
+    category: "full-zipper",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
+  },
+
+  // MEN - Jacket
+  {
+    category: "half-jacket",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
+  },
+  {
+    category: "cotnise-jacket",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
+  },
+  {
+    category: "denim",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "XXL" }, { label: "Free" }]
+  },
+
+  // MEN - Formal trousers / lower
+  {
+    category: "linen-trouser",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "36" }, { label: "Free" }]
+  },
+  {
+    category: "cargo",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "36" }, { label: "Free" }]
+  },
+
+  // MEN - Jeans
+  {
+    category: "cotrises-jeans",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "36" }, { label: "Free" }]
+  },
+  {
+    category: "fleece",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
+  },
+  {
+    category: "without-fleece",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
+  },
+
+  // MEN - Lower
+  {
+    category: "cotrises",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "Free" }]
+  },
+  {
+    category: "fleece_lower",
+    sizes: [{ label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
+  },
+  {
+    category: "straight-fit",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "Free" }]
+  },
+  {
+    category: "narrow-fit",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "Free" }]
+  },
+  {
+    category: "lower-style-pant",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "Free" }]
+  },
+  {
+    category: "denim",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "Free" }]
+  },
+
+  // MEN - Cargo (duplicate region aware)
+  {
+    category: "cargo_lower",
+    sizes: [{ label: "30" }, { label: "32" }, { label: "34" }, { label: "Free" }]
+  },
+
+  // FALLBACK / Generic - keep before finishing
+  {
+    category: "generic",
+    sizes: [{ label: "S" }, { label: "M" }, { label: "L" }, { label: "XL" }, { label: "Free" }]
   }
 ];
-
 
 (async function seed() {
   try {

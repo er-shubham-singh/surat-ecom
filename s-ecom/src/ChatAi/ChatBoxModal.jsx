@@ -55,7 +55,7 @@ useEffect(() => {
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-          <h3>Fluteon Assistant</h3>
+          <h3>Venus Garments Assistant</h3>
           <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>

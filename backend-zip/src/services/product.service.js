@@ -1,7 +1,8 @@
 const cloudinary = require("../config/cloudinary"); // ✅ correct
 const Category = require("../models/category.model");
 const Product = require("../models/product.model");
-
+const streamifier = require("streamifier");
+const cloudinaryLib = require("../config/cloudinary");
 
 
 // helper used here
@@ -239,30 +240,182 @@ async function getProductsByCategoryName(name, limit = 10) {
 }
 
 
+// async function createProduct(req) {
+//   try {
+//     const reqData = req.body;
+
+//     // Parse size string to JSON array
+//     let sizes = reqData.size;
+//     if (typeof sizes === "string") sizes = JSON.parse(sizes);
+
+//     // Upload images to Cloudinary
+//     if (!req.files || req.files.length === 0) throw new Error("No images uploaded");
+
+//     const uploadResults = await Promise.all(
+//       req.files.map(file => {
+//         const base64Image = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+//         return cloudinary.uploader.upload(base64Image, {
+//           folder: "ecommerce/products",
+//         });
+//       })
+//     );
+
+//     const imageUrls = uploadResults.map(result => result.secure_url);
+//     console.log("Uploaded image URLs:", imageUrls);
+
+//     // Handle category creation
+//     const topLevel = await Category.findOne({ name: reqData.topLevelCategory }) ||
+//       await new Category({ name: reqData.topLevelCategory, level: 1 }).save();
+
+//     const secondLevel = await Category.findOne({
+//       name: reqData.secondLevelCategory,
+//       parentCategory: topLevel._id,
+//     }) || await new Category({
+//       name: reqData.secondLevelCategory,
+//       parentCategory: topLevel._id,
+//       level: 2,
+//     }).save();
+
+//     const thirdLevel = await Category.findOne({
+//       name: reqData.thirdLevelCategory,
+//       parentCategory: secondLevel._id,
+//     }) || await new Category({
+//       name: reqData.thirdLevelCategory,
+//       parentCategory: secondLevel._id,
+//       level: 3,
+//     }).save();
+
+//     // Create and save product
+//     const product = new Product({
+//       title: reqData.title,
+//       description: reqData.description,
+//       discountedPrice: reqData.discountedPrice,
+//       discountPersent: reqData.discountPersent,
+//       imageUrl: imageUrls,
+//       brand: reqData.brand,
+//       price: reqData.price,
+//       sizes: sizes,
+//       quantity: reqData.quantity,
+//       color: reqData.color,
+//       category: thirdLevel._id,
+//     });
+
+//     return await product.save();
+
+//   } catch (error) {
+//     console.error("Create Product Error:", error);
+//     throw new Error(error.message || "Something went wrong");
+//   }
+// }
+
+// Delete a product by ID
+
+
+
 async function createProduct(req) {
   try {
-    const reqData = req.body;
+    console.log("== createProduct called ==");
+    // Log headers briefly (don't log Authorization or cookies in production)
+    console.log("Headers:", {
+      "content-type": req.headers["content-type"],
+      length: req.headers["content-length"]
+    });
 
-    // Parse size string to JSON array
+    // Log body and files so you can see what arrived
+    console.log("Request body keys:", Object.keys(req.body || {}));
+    // For sensitive values, avoid printing raw values in production - here it's for dev debugging
+    console.log("Request body (preview):", Object.entries(req.body || {}).slice(0, 20));
+    if (req.files) {
+      console.log("Files received (count):", req.files.length);
+      req.files.forEach((f, idx) => {
+        console.log(`file[${idx}]: fieldname=${f.fieldname} originalname=${f.originalname} mimetype=${f.mimetype} size=${f.size} bufferPresent=${!!f.buffer}`);
+      });
+    } else {
+      console.warn("No req.files provided (multer may not be configured or form-data missing files).");
+    }
+
+    const reqData = req.body || {};
+
+    // Parse sizes safely
     let sizes = reqData.size;
-    if (typeof sizes === "string") sizes = JSON.parse(sizes);
+    if (typeof sizes === "string") {
+      try { sizes = JSON.parse(sizes); } catch (e) { /* keep string if parse fails */ }
+    }
 
-    // Upload images to Cloudinary
-    if (!req.files || req.files.length === 0) throw new Error("No images uploaded");
+    // Validate images presence early and throw a friendly error
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      console.error("Create Product Error: No images uploaded - req.files is empty or missing");
+      console.error("Hint: Ensure the client sends multipart/form-data with file field(s). Example field name: 'images' or 'file'");
+      throw new Error("No images uploaded");
+    }
 
-    const uploadResults = await Promise.all(
-      req.files.map(file => {
-        const base64Image = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
-        return cloudinary.uploader.upload(base64Image, {
-          folder: "ecommerce/products",
-        });
-      })
-    );
+    // Log Cloudinary config (non-sensitive parts). Avoid logging API key/secret.
+    try {
+      // If your config exported cloudinary.v2 instance:
+      const cfg = cloudinaryLib.config ? cloudinaryLib.config() : (cloudinaryLib && cloudinaryLib.config && cloudinaryLib.config()) || {};
+      console.log("Cloudinary config (cloud_name):", cfg.cloud_name || cfg.cloud || process.env.CLOUDINARY_CLOUD_NAME || "<not-set>");
+    } catch (e) {
+      console.warn("Could not read Cloudinary config for logging:", e?.message || e);
+    }
 
-    const imageUrls = uploadResults.map(result => result.secure_url);
+    // Upload each file using upload_stream (safe for buffer-based multer)
+    const uploadToCloudinary = (file, options = {}) => {
+      return new Promise((resolve, reject) => {
+        // support both buffer (multer memoryStorage) and filesystem path
+        if (file.buffer && file.buffer.length) {
+          const uploadStream = (cloudinaryLib.uploader || cloudinaryLib).upload_stream(
+            options,
+            (err, result) => {
+              if (err) {
+                console.error("Cloudinary upload_stream error:", err?.message || err);
+                return reject(err);
+              }
+              resolve(result);
+            }
+          );
+          streamifier.createReadStream(file.buffer).pipe(uploadStream);
+        } else if (file.path) {
+          // multer disk storage: upload by path
+          (cloudinaryLib.uploader || cloudinaryLib).upload(file.path, options)
+            .then(resolve)
+            .catch(err => {
+              console.error("Cloudinary upload (path) error:", err?.message || err);
+              reject(err);
+            });
+        } else {
+          return reject(new Error("File has neither buffer nor path"));
+        }
+      });
+    };
+
+    // Do uploads in parallel but with robust error handling
+    let uploadResults;
+    try {
+      const uploads = req.files.map((file) =>
+        uploadToCloudinary(file, { folder: "ecommerce/products" })
+          .then(r => ({ ok: true, r }))
+          .catch(err => ({ ok: false, err }))
+      );
+      uploadResults = await Promise.all(uploads);
+    } catch (e) {
+      // Shouldn't get here since we handle per-file errors, but catch defensively
+      console.error("Unexpected error during upload Promise.all:", e?.message || e);
+      throw new Error("Image upload failed");
+    }
+
+    // Inspect upload results, fail if any critical errors
+    const failed = uploadResults.filter(u => !u.ok);
+    if (failed.length) {
+      console.error(`Cloudinary: ${failed.length} uploads failed out of ${uploadResults.length}`);
+      failed.forEach((f, i) => console.error(` - failed[${i}]:`, f.err?.message || f.err));
+      // You can choose to continue with successful uploads or fail entirely. Here we fail:
+      throw new Error("One or more image uploads failed. Check logs for details.");
+    }
+
+    const imageUrls = uploadResults.map(u => u.r.secure_url || u.r.url).filter(Boolean);
     console.log("Uploaded image URLs:", imageUrls);
 
-    // Handle category creation
+    // Continue existing category logic (keep as-is)
     const topLevel = await Category.findOne({ name: reqData.topLevelCategory }) ||
       await new Category({ name: reqData.topLevelCategory, level: 1 }).save();
 
@@ -299,15 +452,18 @@ async function createProduct(req) {
       category: thirdLevel._id,
     });
 
-    return await product.save();
+    const saved = await product.save();
+    console.log("Product created successfully:", saved._id);
+    return saved;
 
   } catch (error) {
-    console.error("Create Product Error:", error);
-    throw new Error(error.message || "Something went wrong");
+    // Ensure we log the original error stack for debugging
+    console.error("Create Product Error:", error && (error.stack || error.message || error));
+    // Re-throw a friendly error (controller will handle response)
+    throw new Error(error.message || "Something went wrong while creating product");
   }
 }
 
-// Delete a product by ID
 async function deleteProduct(productId) {
   const product = await findProductById(productId);
 

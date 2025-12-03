@@ -9,6 +9,7 @@ import { getCart } from "../redux/Cart/Action";
 
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { Button } from "@mui/material";
+import AddsBar from "../AddsBar";
 
 const iconButtonClass =
   "p-2.5 rounded-full hover:bg-white/10 focus:bg-white/10 transition-all duration-300 flex items-center justify-center outline-none relative group";
@@ -241,9 +242,10 @@ export default function Header() {
           scrolled ? "shadow-xl" : "shadow-md"
         }`}
       >
+        <AddsBar />
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           {/* Top Bar - Desktop Only */}
-          <div className="flex flex-col sm:flex-row items-center justify-between py-2 border-b border-[#CBE600]/30 text-xs sm:text-sm gap-2">
+          {/* <div className="flex flex-col sm:flex-row items-center justify-between py-2 border-b border-[#CBE600]/30 text-xs sm:text-sm gap-2">
             <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 text-[#111111]/70 flex-wrap justify-center sm:justify-start">
               <a
                 href="tel:+1234567890"
@@ -301,7 +303,7 @@ export default function Header() {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Main Header */}
           <div className="flex items-center justify-between h-16 md:h-20 lg:h-24">
